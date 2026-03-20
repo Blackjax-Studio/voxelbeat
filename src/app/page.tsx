@@ -8,10 +8,10 @@ export type VisStyle = 'Circular' | 'Bars' | 'Waveform' | 'Nebula';
 
 export default function Home() {
   const tracks = [
-    { name: "Coming soon to Video and DVD Demo", src: "/song-1.wav" },
-    { name: "Sunrise Fields Anthem", src: "/Sunrise Fields Anthem.wav" },
+    { name: "Coming soon to Video and DVD Demo", src: "/song-1.mp3" },
+    { name: "Sunrise Fields Anthem", src: "/Sunrise Fields Anthem.mp3" },
     { name: "Country EDM Instrumental V1", src: "/Country EDM Instrumental V1.mp3" },
-    { name: "R&B Beat", src: "/RnB Beat.wav" },
+    { name: "R&B Beat", src: "/RnB Beat.mp3" },
   ];
 
   const [visStyle, setVisStyle] = useState<VisStyle>('Circular');
