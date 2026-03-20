@@ -32,24 +32,8 @@ const nextConfig: NextConfig = {
       allowedOrigins: ['*.ngrok.io', 'robert-local.ngrok.io', 'localhost:3000'],
     },
   },
-  webpack: (config, { isServer }) => {
-    if (!isServer) {
-      config.watchOptions = {
-        poll: 1000,
-        aggregateTimeout: 300,
-      };
-
-      // For Hot Module Replacement (HMR) to work via ngrok
-      if (config.infrastructureLogging) {
-        config.infrastructureLogging.level = 'error';
-      }
-    }
-    // Optimization: disable internal font optimization entirely to avoid proxying
-    if (config.optimization) {
-        config.optimization.minimize = false;
-    }
-    return config;
-  },
+  // Add empty turbopack config to silence the warning
+  turbopack: {},
 };
 
 export default nextConfig;
