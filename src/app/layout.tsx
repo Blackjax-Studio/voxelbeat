@@ -3,8 +3,8 @@ import { Analytics } from '@vercel/analytics/react';
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "VoxelBeat",
-  description: "Modern Music Experience by ElpepesUno",
+  title: "VoxelBeat | Indie Game Musicians",
+  description: "Indie Game Musicians",
   icons: {
     icon: [
       { url: "/lumi-logo-2.png" },
