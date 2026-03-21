@@ -6,15 +6,17 @@ import { login, signup, resetPassword } from "@/app/login/actions";
 interface LoginModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSwitchToSignup?: () => void;
 }
 
-export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
+export default function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginModalProps) {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
   const [resetEmail, setResetEmail] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -47,7 +49,6 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
   return (
     <div
       className="fixed inset-0 z-[110] flex items-center justify-center p-4 min-h-screen"
-      onClick={onClose}
     >
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/80 backdrop-blur-xl animate-fadeIn" />
@@ -73,10 +74,10 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
         <div className="text-center">
           <h1 className="text-4xl font-['Anton'] mb-2 uppercase tracking-tight">
-            {showForgotPassword ? 'Reset Password' : 'Welcome'}
+            {showForgotPassword ? 'Reset Password' : 'Welcome Back'}
           </h1>
           <p className="text-white/60 font-medium">
-            {showForgotPassword ? 'Enter your email to receive a reset link' : 'Log in or create an account'}
+            {showForgotPassword ? 'Enter your email to receive a reset link' : 'Log in to your account'}
           </p>
         </div>
 
@@ -207,32 +208,42 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
           <div className="flex flex-col gap-3 pt-6">
             <button
               formAction={async (formData) => {
-                await signup(formData);
+                setIsLoading(true);
+                try {
+                  await login(formData);
+                } finally {
+                  setIsLoading(false);
+                }
               }}
-              className="w-full bg-white text-black text-xs font-black uppercase tracking-widest py-4 px-6 rounded-2xl hover:scale-[1.02] transition-all active:scale-[0.98] shadow-lg shadow-white/10"
+              disabled={isLoading}
+              className="w-full bg-white text-black text-xs font-black uppercase tracking-widest py-4 px-6 rounded-2xl hover:scale-[1.02] transition-all active:scale-[0.98] shadow-lg shadow-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Sign up
-            </button>
-            <button
-              formAction={async (formData) => {
-                await login(formData);
-                // The server action redirects on success, which might still refresh the page.
-                // But for now, let's keep it as is and see.
-              }}
-              className="w-full bg-white/5 text-white text-xs font-black uppercase tracking-widest py-4 px-6 rounded-2xl border border-white/10 hover:bg-white/10 transition-all active:scale-[0.98]"
-            >
-              Log in
+              {isLoading ? 'Logging in...' : 'Log in'}
             </button>
           </div>
 
-          <div className="text-center pt-4">
-            <button
-              type="button"
-              onClick={() => setShowForgotPassword(true)}
-              className="text-xs text-white/40 hover:text-white/60 transition-colors"
-            >
-              Forgot your password?
-            </button>
+          <div className="text-center pt-4 space-y-3">
+            {onSwitchToSignup && (
+              <p className="text-xs text-white/40">
+                Don't have an account?{" "}
+                <button
+                  type="button"
+                  onClick={onSwitchToSignup}
+                  className="text-white hover:underline font-bold transition-colors"
+                >
+                  Sign up
+                </button>
+              </p>
+            )}
+            <div>
+              <button
+                type="button"
+                onClick={() => setShowForgotPassword(true)}
+                className="text-xs text-white/40 hover:text-white/60 transition-colors"
+              >
+                Forgot your password?
+              </button>
+            </div>
           </div>
         </form>
         )}

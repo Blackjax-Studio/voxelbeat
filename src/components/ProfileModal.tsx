@@ -4,6 +4,7 @@ import { useEffect } from "react";
 
 export interface UserProfile {
   studioName?: string;
+  avatarUrl?: string;
   bio?: string;
   spotifyLink?: string;
   soundcloudLink?: string;
@@ -22,6 +23,16 @@ interface ProfileModalProps {
 }
 
 export default function ProfileModal({ isOpen, onClose, profile }: ProfileModalProps) {
+  const getInitials = (name: string) => {
+    if (!name) return "";
+    return name
+      .split(' ')
+      .map(word => word[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -76,7 +87,13 @@ export default function ProfileModal({ isOpen, onClose, profile }: ProfileModalP
           {/* Avatar/Logo */}
           <div className="relative flex justify-center mb-3">
             <div className="w-20 h-20 rounded-full bg-black/40 backdrop-blur-md border-2 border-white/20 flex items-center justify-center overflow-hidden">
-              <img src="/lumi-logo-2.png" alt="Logo" className="w-full h-full object-cover" />
+              {profile?.avatarUrl ? (
+                <img src={profile.avatarUrl} alt={profile.studioName} className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-white font-['Anton'] text-2xl tracking-tighter">
+                  {getInitials(profile?.studioName || 'NBK Productions')}
+                </span>
+              )}
             </div>
           </div>
 

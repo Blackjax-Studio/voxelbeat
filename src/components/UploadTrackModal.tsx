@@ -5,13 +5,17 @@ import { useEffect, useState } from "react";
 interface UploadTrackModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
-export default function UploadTrackModal({ isOpen, onClose }: UploadTrackModalProps) {
+export default function UploadTrackModal({ isOpen, onClose, onSuccess }: UploadTrackModalProps) {
   const [trackFile, setTrackFile] = useState<File | null>(null);
   const [trackName, setTrackName] = useState("");
   const [trackDescription, setTrackDescription] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const tagCategories = {
     "Genre": [
@@ -53,17 +57,126 @@ export default function UploadTrackModal({ isOpen, onClose }: UploadTrackModalPr
     }
   };
 
-  const handleSubmit = () => {
-    // TODO: Implement track upload
-    console.log({ trackFile, trackName, trackDescription, selectedTags });
-    alert('Track upload will be implemented soon');
-    onClose();
+  const handleSubmit = async () => {
+    if (!trackName || !trackFile) return;
+
+    setIsUploading(true);
+    setUploadStatus('idle');
+    setUploadProgress(0);
+
+    try {
+      // 1. Initiate multipart upload
+      const initResponse = await fetch('/api/upload/initiate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          filename: trackFile.name,
+          filetype: trackFile.type
+        }),
+      });
+
+      if (!initResponse.ok) throw new Error('Failed to initiate upload');
+      const { uploadId, storageKey } = await initResponse.json();
+
+      // 2. Upload parts
+      const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB minimum for S3 multipart
+      const totalParts = Math.ceil(trackFile.size / CHUNK_SIZE);
+      const parts = [];
+
+      for (let i = 0; i < totalParts; i++) {
+        const start = i * CHUNK_SIZE;
+        const end = Math.min(start + CHUNK_SIZE, trackFile.size);
+        const chunk = trackFile.slice(start, end);
+        const partNumber = i + 1;
+
+        // Get presigned URL for this part
+        const presignResponse = await fetch('/api/upload/presign-part', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ storageKey, uploadId, partNumber }),
+        });
+
+        if (!presignResponse.ok) throw new Error(`Failed to presign part ${partNumber}`);
+        const { url } = await presignResponse.json();
+
+        // Upload to S3
+        const uploadPartResponse = await fetch(url, {
+          method: 'PUT',
+          body: chunk,
+        });
+
+        if (!uploadPartResponse.ok) throw new Error(`Failed to upload part ${partNumber}`);
+        const eTag = uploadPartResponse.headers.get('ETag');
+        if (!eTag) throw new Error(`No ETag for part ${partNumber}`);
+
+        parts.push({ PartNumber: partNumber, ETag: eTag });
+        setUploadProgress(Math.round(((i + 1) / totalParts) * 90)); // Save last 10% for completion
+      }
+
+      // 3. Complete multipart upload
+      const completeResponse = await fetch('/api/upload/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ storageKey, uploadId, parts }),
+      });
+
+      if (!completeResponse.ok) throw new Error('Failed to complete upload');
+      setUploadProgress(95);
+
+      // 4. Create track record in database
+      const body = {
+        title: trackName,
+        description: trackDescription,
+        tags: selectedTags.join(','),
+        storage_key: storageKey,
+        filename: trackFile.name,
+        filetype: trackFile.type,
+        filesize: trackFile.size
+      };
+
+      const dbResponse = await fetch('/api/tracks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (!dbResponse.ok) {
+        throw new Error('Failed to create track record');
+      }
+
+      setUploadProgress(100);
+      setUploadStatus('success');
+      
+      // Notify parent to refresh list
+      if (onSuccess) {
+        onSuccess();
+      }
+
+      // Close modal after a short delay
+      setTimeout(() => {
+        onClose();
+        // Reset state
+        setTrackFile(null);
+        setTrackName("");
+        setTrackDescription("");
+        setSelectedTags([]);
+        setUploadStatus('idle');
+        setUploadProgress(0);
+      }, 1500);
+
+    } catch (error) {
+      console.error('Error uploading track:', error);
+      setUploadStatus('error');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
     <div
       className="fixed inset-0 z-[120] flex items-center justify-center p-4"
-      onClick={onClose}
     >
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/80 backdrop-blur-xl animate-fadeIn" />
@@ -165,7 +278,7 @@ export default function UploadTrackModal({ isOpen, onClose }: UploadTrackModalPr
               Description <span className="text-white/40">(Optional)</span>
             </label>
             <textarea
-              placeholder="Tell listeners about your track..."
+              placeholder="Tell listeners about your track. Detailed descriptions help the right audience find your music through semantic search!"
               value={trackDescription}
               onChange={(e) => setTrackDescription(e.target.value)}
               rows={4}
@@ -227,14 +340,50 @@ export default function UploadTrackModal({ isOpen, onClose }: UploadTrackModalPr
           </button>
           <button
             onClick={handleSubmit}
-            disabled={!trackFile || !trackName}
-            className={`flex-1 px-6 py-2.5 rounded-lg font-medium text-sm transition-colors ${
-              trackFile && trackName
+            disabled={!trackName || !trackFile || isUploading}
+            className={`flex-1 px-6 py-2.5 rounded-lg font-medium text-sm transition-all flex items-center justify-center gap-2 relative overflow-hidden ${
+              uploadStatus === 'success'
+                ? 'bg-emerald-600 text-white'
+                : uploadStatus === 'error'
+                ? 'bg-rose-600 text-white'
+                : trackName && trackFile && !isUploading
                 ? 'bg-violet-600 hover:bg-violet-700 text-white shadow-lg shadow-violet-600/20'
                 : 'bg-white/5 text-white/30 cursor-not-allowed border border-white/5'
             }`}
           >
-            Upload Track
+            {isUploading && (
+              <div 
+                className="absolute inset-0 bg-white/20 transition-all duration-300" 
+                style={{ width: `${uploadProgress}%` }}
+              />
+            )}
+            <span className="relative z-10 flex items-center gap-2">
+              {isUploading ? (
+                <>
+                  <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  {uploadProgress < 95 ? `Uploading ${uploadProgress}%` : 'Finalizing...'}
+                </>
+              ) : uploadStatus === 'success' ? (
+                <>
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Saved!
+                </>
+              ) : uploadStatus === 'error' ? (
+                <>
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  Failed
+                </>
+              ) : (
+                'Save Track'
+              )}
+            </span>
           </button>
         </div>
       </div>

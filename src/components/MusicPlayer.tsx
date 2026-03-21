@@ -12,6 +12,7 @@ interface Track {
 interface MusicPlayerProps {
     tracks: Track[];
     artistName: string;
+    avatarUrl?: string;
     visStyle: VisStyle;
     setVisStyle: (style: VisStyle) => void;
     onViewProfile: () => void;
@@ -23,6 +24,7 @@ interface MusicPlayerProps {
 export default function MusicPlayer({
                                         tracks,
                                         artistName,
+                                        avatarUrl,
                                         visStyle,
                                         setVisStyle,
                                         onViewProfile,
@@ -30,7 +32,17 @@ export default function MusicPlayer({
                                         onNextArtist,
                                         onPrevArtist
                                     }: MusicPlayerProps) {
-    const audioRef = useRef<HTMLAudioElement>(null);
+                                        const getInitials = (name: string) => {
+                                            if (!name) return "";
+                                            return name
+                                                .split(' ')
+                                                .map(word => word[0])
+                                                .join('')
+                                                .toUpperCase()
+                                                .slice(0, 2);
+                                        };
+
+                                        const audioRef = useRef<HTMLAudioElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -46,6 +58,7 @@ export default function MusicPlayer({
 
     const isPlayingRef = useRef(false);
     const playPromiseRef = useRef<Promise<void> | null>(null);
+    const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
 
     const setupAudio = useCallback(() => {
         if (!audioRef.current) return;
@@ -57,9 +70,13 @@ export default function MusicPlayer({
             return;
         }
 
+        // Don't create a new source if one already exists
+        if (sourceNodeRef.current) return;
+
         try {
             const context = new (window.AudioContext || (window as any).webkitAudioContext)();
             const source = context.createMediaElementSource(audioRef.current);
+            sourceNodeRef.current = source;
             const analyserNode = context.createAnalyser();
             analyserNode.fftSize = 512;
             source.connect(analyserNode);
@@ -162,11 +179,24 @@ export default function MusicPlayer({
         const audio = audioRef.current;
         if (!audio) return;
 
+        // Handle empty tracks list
+        if (tracks.length === 0) {
+            pauseAudio();
+            return;
+        }
+
+        // Reset index if it's out of bounds for the new tracks array
+        if (currentTrackIndex >= tracks.length) {
+            setCurrentTrackIndex(0);
+            return;
+        }
+
         // Force reload the audio source when track index or tracks list change
         // This ensures the browser starts loading the new track immediately
-        audio.load();
+        // audio.load();
 
         if (isPlayingRef.current) {
+            audio.load();
             playAudio();
         } else {
             pauseAudio();
@@ -176,10 +206,7 @@ export default function MusicPlayer({
     // First interaction handler
     useEffect(() => {
         const handleFirstInteraction = () => {
-            if (!isPlayingRef.current) {
-                isPlayingRef.current = true;
-                playAudio();
-            }
+            setupAudio();
             document.removeEventListener('click', handleFirstInteraction);
             document.removeEventListener('keydown', handleFirstInteraction);
             document.removeEventListener('touchstart', handleFirstInteraction);
@@ -192,7 +219,7 @@ export default function MusicPlayer({
             document.removeEventListener('keydown', handleFirstInteraction);
             document.removeEventListener('touchstart', handleFirstInteraction);
         };
-    }, [playAudio]);
+    }, [setupAudio]);
 
     // Cleanup on unmount
     useEffect(() => {
@@ -280,19 +307,23 @@ export default function MusicPlayer({
     };
 
     const nextTrack = useCallback(() => {
+        if (tracks.length === 0) return;
         setCurrentTrackIndex((prev) => {
             const nextIndex = (prev + 1) % tracks.length;
             console.log(`[DEBUG_LOG] Next track index: ${nextIndex} (was ${prev}), length: ${tracks.length}`);
             return nextIndex;
         });
+        isPlayingRef.current = true;
     }, [tracks.length]);
 
     const prevTrack = useCallback(() => {
+        if (tracks.length === 0) return;
         setCurrentTrackIndex((prev) => {
             const nextIndex = (prev - 1 + tracks.length) % tracks.length;
             console.log(`[DEBUG_LOG] Prev track index: ${nextIndex} (was ${prev}), length: ${tracks.length}`);
             return nextIndex;
         });
+        isPlayingRef.current = true;
     }, [tracks.length]);
 
     const trackColors = [
@@ -329,15 +360,21 @@ export default function MusicPlayer({
 
                     {/* Center logo */}
                     <div className="absolute inset-0 flex items-center justify-center px-3 xs:px-4 group-hover:scale-105 transition-transform duration-500">
-                        <div className="flex items-center gap-2 xs:gap-4">
-                            <div className={`w-12 h-12 xs:w-14 xs:h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center
+                        <div className="flex flex-col items-center gap-2 xs:gap-3">
+                            <div className={`w-12 h-12 xs:w-16 xs:h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center
                   ${isPlaying ? 'animate-spin' : ''} bg-yellow-400 backdrop-blur-md border border-white/20 shadow-xl group-hover:shadow-yellow-400/20 transition-all overflow-hidden`}
                                  style={{ animationDuration: '8s' }}>
-                                <img src="/lumi-logo-2.png" alt="Logo" className="w-full h-full object-cover" />
+                                {avatarUrl ? (
+                                    <img src={avatarUrl} alt={artistName} className="w-full h-full object-cover" />
+                                ) : (
+                                    <span className="text-white font-['Anton'] text-lg xs:text-xl md:text-2xl tracking-tighter">
+                                        {getInitials(artistName)}
+                                    </span>
+                                )}
                             </div>
-                            <div className="flex flex-col">
+                            <div className="flex flex-col items-center text-center">
                                 <span className="text-white/60 text-[8px] xs:text-[10px] font-black tracking-[0.2em] xs:tracking-[0.3em] uppercase">{artistName}</span>
-                                <p className="text-white font-bold text-xs xs:text-sm md:text-lg leading-tight truncate drop-shadow-md">
+                                <p className="text-white font-bold text-sm xs:text-base md:text-xl leading-tight truncate drop-shadow-md max-w-[200px] xs:max-w-[300px] md:max-w-[500px]">
                                     {tracks[currentTrackIndex]?.name || "Loading..."}
                                 </p>
                             </div>
@@ -360,32 +397,33 @@ export default function MusicPlayer({
                 {/* Controls Area */}
                 <div className="px-3 xs:px-5 pt-3 xs:pt-4 pb-4 xs:pb-5 flex flex-col gap-3 xs:gap-4">
                     {/* Track Description (Now below banner) */}
-                    {tracks[currentTrackIndex].description && (
+                    {tracks[currentTrackIndex]?.description && (
                         <p className="text-white/60 text-[9px] xs:text-[10px] md:text-xs leading-tight line-clamp-2">
-                            {tracks[currentTrackIndex].description}
+                            {tracks[currentTrackIndex]?.description}
                         </p>
                     )}
 
                     {/* Seek bar */}
                     <div className="relative flex flex-col gap-1 xs:gap-1.5 py-1.5 xs:py-2">
-                        <div className="relative w-full h-1 bg-white/10 rounded-full overflow-hidden">
+                        <div
+                            className="relative w-full h-1 bg-white/10 rounded-full overflow-hidden group/timeline cursor-pointer"
+                            onClick={(e) => {
+                                if (!audioRef.current || !duration) return;
+                                const rect = e.currentTarget.getBoundingClientRect();
+                                const x = e.clientX - rect.left;
+                                const percentage = x / rect.width;
+                                const newTime = percentage * duration;
+                                audioRef.current.currentTime = newTime;
+                                setCurrentTime(newTime);
+                            }}
+                        >
                             {/* Buffer progress */}
-                            <div className="absolute inset-y-0 left-0 bg-white/10 rounded-full transition-all duration-300"
+                            <div className="absolute inset-y-0 left-0 bg-white/10 rounded-full transition-all duration-300 pointer-events-none"
                                  style={{ width: `${loadProgress}%` }} />
                             {/* Playback progress */}
-                            <div className={`absolute inset-y-0 left-0 bg-gradient-to-r ${currentColor} rounded-full transition-all duration-100`}
+                            <div className={`absolute inset-y-0 left-0 bg-gradient-to-r ${currentColor} group-hover/timeline:opacity-80 rounded-full transition-all duration-100 pointer-events-none`}
                                  style={{ width: `${progressPercent}%` }} />
                         </div>
-                        <input
-                            type="range"
-                            min={0}
-                            max={duration || 0}
-                            step={0.1}
-                            value={currentTime}
-                            onChange={handleSeek}
-                            className="absolute z-20 opacity-0 w-full cursor-pointer top-0 bottom-0 left-0 right-0"
-                            style={{ height: 'auto', margin: 0 }}
-                        />
                         <div className="flex justify-between">
                             <span className="text-[9px] xs:text-[10px] text-white/30 font-mono">{formatTime(currentTime)}</span>
                             <span className="text-[9px] xs:text-[10px] text-white/30 font-mono">{formatTime(duration)}</span>
@@ -422,14 +460,22 @@ export default function MusicPlayer({
 
                         {/* Play/Pause */}
                         <button onClick={togglePlay}
-                                className={`relative w-11 h-11 xs:w-14 xs:h-14 rounded-full flex items-center justify-center transition-all hover:scale-105 active:scale-95 bg-gradient-to-br ${currentColor}`}
-                                style={{ boxShadow: `0 0 30px rgba(168,85,247,${0.3 + (isPlaying ? 0.3 : 0)})` }}>
+                                className={`relative w-12 h-12 xs:w-16 xs:h-16 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95 bg-gradient-to-br ${currentColor} group shadow-lg overflow-hidden`}
+                                style={{
+                                    boxShadow: `0 0 25px rgba(168,85,247,${0.2 + (isPlaying ? 0.4 : 0)}), inset 0 0 12px rgba(255,255,255,0.2)`
+                                }}>
+                            {/* Inner glow/glass effect layer */}
+                            <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                            {/* Background shine animation */}
+                            <div className="absolute -inset-[100%] bg-gradient-to-r from-transparent via-white/25 to-transparent rotate-45 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 pointer-events-none" />
+
                             {isPlaying ? (
-                                <svg className="w-6 h-6 xs:w-7 xs:h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-7 h-7 xs:w-8 xs:h-8 text-white drop-shadow-md z-10" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
                                 </svg>
                             ) : (
-                                <svg className="w-6 h-6 xs:w-7 xs:h-7 text-white translate-x-0.5" fill="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-7 h-7 xs:w-8 xs:h-8 text-white translate-x-[2px] drop-shadow-md z-10" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M8 5v14l11-7z"/>
                                 </svg>
                             )}
@@ -460,12 +506,12 @@ export default function MusicPlayer({
                                 <button key={i} onClick={() => { setCurrentTrackIndex(i); if (!isPlaying) togglePlay(); }}
                                         className={`flex items-center gap-2 xs:gap-3 px-2 xs:px-3 py-1.5 xs:py-2 rounded-lg text-left transition-all
                     ${i === currentTrackIndex ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white/70 hover:bg-white/5'}`}>
-                                    <div className={`w-4 h-4 xs:w-5 xs:h-5 rounded-full flex items-center justify-center flex-shrink-0
-                    ${i === currentTrackIndex ? `bg-gradient-to-br ${trackColors[i % trackColors.length]}` : 'bg-white/10'}`}>
+                                    <div className={`w-5 h-5 xs:w-6 xs:h-6 rounded-full flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110 shadow-sm
+                    ${i === currentTrackIndex ? `bg-gradient-to-br ${trackColors[i % trackColors.length]} ring-1 ring-white/30` : 'bg-white/10'}`}>
                                         {i === currentTrackIndex && isPlaying ? (
-                                            <span className="w-1 h-1 xs:w-1.5 xs:h-1.5 rounded-full bg-white animate-pulse" />
+                                            <span className="w-1.5 h-1.5 xs:w-2 xs:h-2 rounded-full bg-white animate-pulse" />
                                         ) : (
-                                            <span className="text-[7px] xs:text-[8px] font-black text-white/70">{i + 1}</span>
+                                            <span className="text-[8px] xs:text-[9px] font-black text-white">{i + 1}</span>
                                         )}
                                     </div>
                                     <span className="text-[10px] xs:text-xs font-medium truncate">{track.name}</span>
@@ -491,9 +537,10 @@ export default function MusicPlayer({
 
             <audio
                 ref={audioRef}
-                src={tracks[currentTrackIndex].src}
+                src={tracks[currentTrackIndex]?.src}
                 onEnded={nextTrack}
                 crossOrigin="anonymous"
+                preload="none"
             />
         </div>
     );

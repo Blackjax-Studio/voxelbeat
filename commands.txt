@@ -1,0 +1,15 @@
+flyway -url=jdbc:postgresql://db.omzyzdqfuzavimjemxby.supabase.co:5432/postgres \
+  -user=postgres \
+  -password='pvMEN9iA9U,y' \
+  -locations=filesystem:/Users/rcs/dev/music-website/db/migrations \
+  -baselineVersion=0 \
+  -baselineOnMigrate=true \
+  migrate
+
+
+
+flyway -url=jdbc:postgresql://db.omzyzdqfuzavimjemxby.supabase.co:5432/postgres \
+  -user=postgres \
+  -password='pvMEN9iA9U,y' \
+  -locations=filesystem:/Users/rcs/dev/music-website/db/migrations \
+  migrate
