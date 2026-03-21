@@ -74,7 +74,18 @@ export default function AccountModal({ isOpen, onClose }: AccountModalProps) {
                 repeating-linear-gradient(-45deg, rgba(255,255,255,0.05) 0px, rgba(255,255,255,0.05) 1px, transparent 1px, transparent 20px)`
             }}
           />
-          <h1 className="relative text-3xl font-['Anton'] text-white mb-4">Account</h1>
+          <div className="flex items-center gap-4 mb-4">
+            <h1 className="relative text-3xl font-['Anton'] text-white">Account</h1>
+            <a
+              href="/auth/logout"
+              className="relative px-3 py-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-[10px] font-bold text-white/40 hover:text-white/70 uppercase tracking-widest transition-all flex items-center gap-1.5"
+            >
+              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              Logout
+            </a>
+          </div>
 
           {/* Tabs */}
           <div className="relative flex gap-2">
@@ -130,8 +141,8 @@ export default function AccountModal({ isOpen, onClose }: AccountModalProps) {
                       <div>
                         <label className="text-xs text-white/60 uppercase tracking-wide block mb-2">Avatar</label>
                         <div className="flex items-center gap-4">
-                          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-violet-600/40 to-fuchsia-600/40 flex items-center justify-center border-2 border-white/20">
-                            <span className="text-2xl">🎵</span>
+                          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-violet-600/40 to-fuchsia-600/40 flex items-center justify-center border-2 border-white/20 overflow-hidden">
+                            <img src="/lumi-logo-2.png" alt="Current Avatar" className="w-full h-full object-cover" />
                           </div>
                           <div className="flex-1">
                             <p className="text-white/60 text-xs mb-2">Upload an image or logo that will appear in the music player</p>
@@ -180,24 +191,6 @@ export default function AccountModal({ isOpen, onClose }: AccountModalProps) {
                           className="w-full mt-1.5 bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white text-sm placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-violet-500"
                         />
                       </div>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <label className="text-xs text-white/60 uppercase tracking-wide">Discord Username</label>
-                          <input
-                            type="text"
-                            placeholder="username#1234"
-                            className="w-full mt-1.5 bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white text-sm placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-violet-500"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-xs text-white/60 uppercase tracking-wide">Discord Server</label>
-                          <input
-                            type="url"
-                            placeholder="https://discord.gg/..."
-                            className="w-full mt-1.5 bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white text-sm placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-violet-500"
-                          />
-                        </div>
-                      </div>
                       <div>
                         <label className="text-xs text-white/60 uppercase tracking-wide">Instagram Link</label>
                         <input
@@ -227,20 +220,30 @@ export default function AccountModal({ isOpen, onClose }: AccountModalProps) {
 
                   <div className="bg-white/5 rounded-xl p-5 border border-white/10">
                     <h2 className="text-xl font-['Anton'] text-white mb-4">Contact Information</h2>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="text-xs text-white/60 uppercase tracking-wide">Contact Email</label>
-                        <input
-                          type="email"
-                          placeholder="contact@example.com"
-                          className="w-full mt-1.5 bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white text-sm placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-violet-500"
-                        />
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-xs text-white/60 uppercase tracking-wide">Contact Email</label>
+                          <input
+                            type="email"
+                            placeholder="contact@example.com"
+                            className="w-full mt-1.5 bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white text-sm placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-white/60 uppercase tracking-wide">Phone Number</label>
+                          <input
+                            type="tel"
+                            placeholder="+1 (555) 123-4567"
+                            className="w-full mt-1.5 bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white text-sm placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                          />
+                        </div>
                       </div>
                       <div>
-                        <label className="text-xs text-white/60 uppercase tracking-wide">Phone Number</label>
+                        <label className="text-xs text-white/60 uppercase tracking-wide">Discord Username</label>
                         <input
-                          type="tel"
-                          placeholder="+1 (555) 123-4567"
+                          type="text"
+                          placeholder="username#1234"
                           className="w-full mt-1.5 bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white text-sm placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-violet-500"
                         />
                       </div>
@@ -316,20 +319,6 @@ export default function AccountModal({ isOpen, onClose }: AccountModalProps) {
                     <p className="text-white/70 text-sm mb-6">
                       These actions are permanent and cannot be undone. Please proceed with caution.
                     </p>
-
-                    {/* Logout Section */}
-                    <div className="bg-white/5 rounded-lg p-4 mb-4 border border-white/10">
-                      <h3 className="text-white font-bold text-sm mb-2">Logout</h3>
-                      <p className="text-white/60 text-xs mb-3">
-                        Sign out of your account on this device.
-                      </p>
-                      <a
-                        href="/auth/logout"
-                        className="inline-block px-6 py-2.5 bg-red-600/80 hover:bg-red-600 rounded-lg text-white font-medium text-sm transition-colors"
-                      >
-                        Logout
-                      </a>
-                    </div>
 
                     {/* Delete Account Section */}
                     <div className="bg-red-950/30 rounded-lg p-4 border border-red-500/50">

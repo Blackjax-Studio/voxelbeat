@@ -256,13 +256,21 @@ export default function MusicPlayer({
         // Change visualization style when track changes
         const styles: VisStyle[] = ['Circular', 'Bars', 'Waveform', 'Nebula'];
         const nextStyle = styles[currentTrackIndex % styles.length];
-        setVisStyle(nextStyle);
+        console.log(`[DEBUG_LOG] Changing visualization style to: ${nextStyle} for track index: ${currentTrackIndex}`);
+
+        // Use a timeout to ensure this doesn't conflict with other state updates
+        // and to make it very explicit that we are switching
+        const timeoutId = setTimeout(() => {
+            setVisStyle(nextStyle);
+        }, 50);
 
         // Reset progress for new track
         setLoadProgress(0);
         setCurrentTime(0);
         setDuration(0);
         setIsBuffering(false);
+
+        return () => clearTimeout(timeoutId);
     }, [currentTrackIndex, setVisStyle]);
 
     // Track list toggle
@@ -298,9 +306,9 @@ export default function MusicPlayer({
     const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
 
     return (
-        <div ref={containerRef} className="relative w-full lg:max-w-md flex items-center justify-center overflow-hidden shrink-0">
+        <div ref={containerRef} className="relative w-full sm:max-w-sm md:max-w-md flex items-center justify-center overflow-hidden shrink-0">
             {/* Main card */}
-            <div className="relative z-10 w-full flex flex-col gap-0 rounded-3xl md:rounded-[2.5rem] overflow-hidden"
+            <div className="relative z-10 w-full flex flex-col gap-0 rounded-2xl xs:rounded-3xl md:rounded-[2.5rem] overflow-hidden"
                  style={{
                      background: 'linear-gradient(145deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%)',
                      backdropFilter: 'blur(32px)',
@@ -320,17 +328,16 @@ export default function MusicPlayer({
                          }} />
 
                     {/* Center logo */}
-                    <div className="absolute inset-0 flex items-center justify-center px-4 group-hover:scale-105 transition-transform duration-500">
-                        <div className="flex items-center gap-4">
-                            <div className={`w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center
-                  ${isPlaying ? 'animate-spin' : ''} bg-yellow-400 backdrop-blur-md border border-white/20 shadow-xl group-hover:shadow-yellow-400/20 transition-all`}
+                    <div className="absolute inset-0 flex items-center justify-center px-3 xs:px-4 group-hover:scale-105 transition-transform duration-500">
+                        <div className="flex items-center gap-2 xs:gap-4">
+                            <div className={`w-12 h-12 xs:w-14 xs:h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center
+                  ${isPlaying ? 'animate-spin' : ''} bg-yellow-400 backdrop-blur-md border border-white/20 shadow-xl group-hover:shadow-yellow-400/20 transition-all overflow-hidden`}
                                  style={{ animationDuration: '8s' }}>
-                  <span className="text-xl md:text-2xl font-black text-black tracking-tighter"
-                        style={{ fontFamily: "'Anton', sans-serif" }}>ELP</span>
+                                <img src="/lumi-logo-2.png" alt="Logo" className="w-full h-full object-cover" />
                             </div>
                             <div className="flex flex-col">
-                                <span className="text-white/60 text-[10px] font-black tracking-[0.3em] uppercase">{artistName}</span>
-                                <p className="text-white font-bold text-sm md:text-lg leading-tight truncate drop-shadow-md">
+                                <span className="text-white/60 text-[8px] xs:text-[10px] font-black tracking-[0.2em] xs:tracking-[0.3em] uppercase">{artistName}</span>
+                                <p className="text-white font-bold text-xs xs:text-sm md:text-lg leading-tight truncate drop-shadow-md">
                                     {tracks[currentTrackIndex]?.name || "Loading..."}
                                 </p>
                             </div>
@@ -351,16 +358,16 @@ export default function MusicPlayer({
                 </div>
 
                 {/* Controls Area */}
-                <div className="px-5 pt-4 pb-5 flex flex-col gap-4">
+                <div className="px-3 xs:px-5 pt-3 xs:pt-4 pb-4 xs:pb-5 flex flex-col gap-3 xs:gap-4">
                     {/* Track Description (Now below banner) */}
                     {tracks[currentTrackIndex].description && (
-                        <p className="text-white/60 text-[10px] md:text-xs leading-tight line-clamp-2">
+                        <p className="text-white/60 text-[9px] xs:text-[10px] md:text-xs leading-tight line-clamp-2">
                             {tracks[currentTrackIndex].description}
                         </p>
                     )}
 
                     {/* Seek bar */}
-                    <div className="relative flex flex-col gap-1.5 py-2">
+                    <div className="relative flex flex-col gap-1 xs:gap-1.5 py-1.5 xs:py-2">
                         <div className="relative w-full h-1 bg-white/10 rounded-full overflow-hidden">
                             {/* Buffer progress */}
                             <div className="absolute inset-y-0 left-0 bg-white/10 rounded-full transition-all duration-300"
@@ -380,25 +387,25 @@ export default function MusicPlayer({
                             style={{ height: 'auto', margin: 0 }}
                         />
                         <div className="flex justify-between">
-                            <span className="text-[10px] text-white/30 font-mono">{formatTime(currentTime)}</span>
-                            <span className="text-[10px] text-white/30 font-mono">{formatTime(duration)}</span>
+                            <span className="text-[9px] xs:text-[10px] text-white/30 font-mono">{formatTime(currentTime)}</span>
+                            <span className="text-[9px] xs:text-[10px] text-white/30 font-mono">{formatTime(duration)}</span>
                         </div>
                     </div>
 
                     {/* Main controls */}
-                    <div className="flex items-center justify-between px-2">
+                    <div className="flex items-center justify-between px-1 xs:px-2">
                         {/* Volume/Mute */}
                         <button onClick={toggleMute} className="text-white/40 hover:text-white/80 transition-colors">
                             {isMuted || volume === 0 ? (
-                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-4 h-4 xs:w-5 xs:h-5" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>
                                 </svg>
                             ) : volume < 0.5 ? (
-                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-4 h-4 xs:w-5 xs:h-5" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M18.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM5 9v6h4l5 5V4L9 9H5z"/>
                                 </svg>
                             ) : (
-                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-4 h-4 xs:w-5 xs:h-5" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
                                 </svg>
                             )}
@@ -406,23 +413,23 @@ export default function MusicPlayer({
 
                         {/* Prev Track */}
                         <button onClick={prevTrack}
-                                className="w-10 h-10 flex items-center justify-center text-white/60 hover:text-white transition-all hover:scale-110"
+                                className="w-8 h-8 xs:w-10 xs:h-10 flex items-center justify-center text-white/60 hover:text-white transition-all hover:scale-110"
                                 title="Previous Track">
-                            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-5 h-5 xs:w-6 xs:h-6" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/>
                             </svg>
                         </button>
 
                         {/* Play/Pause */}
                         <button onClick={togglePlay}
-                                className={`relative w-14 h-14 rounded-full flex items-center justify-center transition-all hover:scale-105 active:scale-95 bg-gradient-to-br ${currentColor}`}
+                                className={`relative w-11 h-11 xs:w-14 xs:h-14 rounded-full flex items-center justify-center transition-all hover:scale-105 active:scale-95 bg-gradient-to-br ${currentColor}`}
                                 style={{ boxShadow: `0 0 30px rgba(168,85,247,${0.3 + (isPlaying ? 0.3 : 0)})` }}>
                             {isPlaying ? (
-                                <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-6 h-6 xs:w-7 xs:h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
                                 </svg>
                             ) : (
-                                <svg className="w-7 h-7 text-white translate-x-0.5" fill="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-6 h-6 xs:w-7 xs:h-7 text-white translate-x-0.5" fill="currentColor" viewBox="0 0 24 24">
                                     <path d="M8 5v14l11-7z"/>
                                 </svg>
                             )}
@@ -430,9 +437,9 @@ export default function MusicPlayer({
 
                         {/* Next Track */}
                         <button onClick={nextTrack}
-                                className="w-10 h-10 flex items-center justify-center text-white/60 hover:text-white transition-all hover:scale-110"
+                                className="w-8 h-8 xs:w-10 xs:h-10 flex items-center justify-center text-white/60 hover:text-white transition-all hover:scale-110"
                                 title="Next Track">
-                            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-5 h-5 xs:w-6 xs:h-6" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
                             </svg>
                         </button>
@@ -440,7 +447,7 @@ export default function MusicPlayer({
                         {/* Track list toggle */}
                         <button onClick={toggleTrackList}
                                 className={`transition-colors ${showTrackList ? 'text-white' : 'text-white/40 hover:text-white/80'}`}>
-                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-4 h-4 xs:w-5 xs:h-5" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
                             </svg>
                         </button>
@@ -448,20 +455,20 @@ export default function MusicPlayer({
 
                     {/* Track list */}
                     {showTrackList && (
-                        <div className="flex flex-col gap-1 pt-2 border-t border-white/5 max-h-48 overflow-y-auto custom-scrollbar">
+                        <div className="flex flex-col gap-0.5 xs:gap-1 pt-2 border-t border-white/5 max-h-40 xs:max-h-48 overflow-y-auto custom-scrollbar">
                             {tracks.map((track, i) => (
                                 <button key={i} onClick={() => { setCurrentTrackIndex(i); if (!isPlaying) togglePlay(); }}
-                                        className={`flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-all
+                                        className={`flex items-center gap-2 xs:gap-3 px-2 xs:px-3 py-1.5 xs:py-2 rounded-lg text-left transition-all
                     ${i === currentTrackIndex ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white/70 hover:bg-white/5'}`}>
-                                    <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0
+                                    <div className={`w-4 h-4 xs:w-5 xs:h-5 rounded-full flex items-center justify-center flex-shrink-0
                     ${i === currentTrackIndex ? `bg-gradient-to-br ${trackColors[i % trackColors.length]}` : 'bg-white/10'}`}>
                                         {i === currentTrackIndex && isPlaying ? (
-                                            <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                                            <span className="w-1 h-1 xs:w-1.5 xs:h-1.5 rounded-full bg-white animate-pulse" />
                                         ) : (
-                                            <span className="text-[8px] font-black text-white/70">{i + 1}</span>
+                                            <span className="text-[7px] xs:text-[8px] font-black text-white/70">{i + 1}</span>
                                         )}
                                     </div>
-                                    <span className="text-xs font-medium truncate">{track.name}</span>
+                                    <span className="text-[10px] xs:text-xs font-medium truncate">{track.name}</span>
                                 </button>
                             ))}
                         </div>
@@ -471,9 +478,9 @@ export default function MusicPlayer({
                     <div className="pt-1 border-t border-white/5">
                         <button
                             onClick={onViewProfile}
-                            className="w-full py-3 rounded-xl bg-gradient-to-r from-violet-600/20 to-fuchsia-600/20 border border-violet-500/30 text-white font-bold text-sm hover:from-violet-600/30 hover:to-fuchsia-600/30 transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
+                            className="w-full py-2.5 xs:py-3 rounded-lg xs:rounded-xl bg-gradient-to-r from-violet-600/20 to-fuchsia-600/20 border border-violet-500/30 text-white font-bold text-xs xs:text-sm hover:from-violet-600/30 hover:to-fuchsia-600/30 transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
                         >
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg className="w-3.5 h-3.5 xs:w-4 xs:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                             </svg>
                             View Profile

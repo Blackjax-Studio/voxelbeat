@@ -6,6 +6,12 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "VoxelBeat",
   description: "Modern Music Experience by ElpepesUno",
+  icons: {
+    icon: [
+      { url: "/lumi-logo-2.png" },
+      { url: "/favicon.ico" }
+    ],
+  },
 };
 
 export default async function RootLayout({
