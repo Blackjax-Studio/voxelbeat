@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Auth0Provider } from '@auth0/nextjs-auth0/client';
 import { auth0 } from '@/lib/auth0';
+import { Analytics } from '@vercel/analytics/react';
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -34,6 +35,7 @@ export default async function RootLayout({
       <body className="min-h-full flex flex-col font-sans">
         <Auth0Provider user={session?.user}>
           {children}
+            <Analytics />
         </Auth0Provider>
       </body>
       </html>
