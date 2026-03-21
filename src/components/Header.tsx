@@ -63,14 +63,14 @@ export default function Header({ onAccountClick, onTagsChange }: HeaderProps) {
           </div>
 
           {/* Desktop Search - Centered */}
-          <div className="hidden xs:flex justify-center">
+          <div className="hidden sm:flex justify-center">
             <div className="relative w-full max-w-md">
               <input
                 type="text"
                 placeholder="Search music..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-white/10 border border-white/20 rounded-full px-4 py-1 xs:py-1.5 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/30 transition-all text-[10px] xs:text-sm"
+                className="w-full bg-white/10 border border-white/20 rounded-full px-4 py-1.5 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/30 transition-all text-sm"
               />
             </div>
           </div>
@@ -106,10 +106,8 @@ export default function Header({ onAccountClick, onTagsChange }: HeaderProps) {
 
           {/* Large Dropdown Menu */}
           {isTagsDropdownOpen && (
-            <div className="absolute top-full left-0 xs:left-1/2 xs:-translate-x-1/2 mt-2 w-[calc(100vw-1.5rem)] xs:w-[calc(100vw-2rem)] sm:w-[700px] max-h-[75vh] overflow-y-auto z-[60] p-4 xs:p-6 rounded-2xl xs:rounded-3xl animate-fadeIn custom-scrollbar"
+            <div className="absolute top-full left-0 xs:left-1/2 xs:-translate-x-1/2 mt-2 w-[calc(100vw-1.5rem)] xs:w-[calc(100vw-2rem)] sm:w-[700px] max-h-[75vh] overflow-y-auto z-[60] p-4 xs:p-6 rounded-2xl xs:rounded-3xl animate-fadeIn custom-scrollbar bg-zinc-900"
                  style={{
-                   background: 'linear-gradient(145deg, rgba(30,30,30,0.95) 0%, rgba(10,10,10,0.98) 100%)',
-                   backdropFilter: 'blur(40px)',
                    border: '1px solid rgba(255,255,255,0.1)',
                    boxShadow: '0 20px 50px rgba(0,0,0,0.8)'
                  }}>
@@ -141,15 +139,15 @@ export default function Header({ onAccountClick, onTagsChange }: HeaderProps) {
           )}
         </div>
 
-        {/* Mobile Search - Bottom on extra small mobile only */}
-        <div className="xs:hidden mt-2">
+        {/* Mobile Search - Bottom on mobile */}
+        <div className="sm:hidden mt-2">
           <div className="relative w-full">
             <input
               type="text"
               placeholder="Search music..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-white/10 border border-white/20 rounded-full px-4 py-1 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/30 transition-all text-[10px]"
+              className="w-full bg-white/10 border border-white/20 rounded-full px-4 py-1.5 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/30 transition-all text-sm"
             />
           </div>
         </div>

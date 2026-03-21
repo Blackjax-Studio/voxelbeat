@@ -37,20 +37,17 @@ export default function ProfileModal({ isOpen, onClose, profile }: ProfileModalP
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-fadeIn"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4"
       onClick={onClose}
     >
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/80 backdrop-blur-xl" />
+      <div className="absolute inset-0 bg-black/80 backdrop-blur-xl animate-fadeIn" />
 
       {/* Modal */}
       <div
-        className="relative w-full max-w-md md:max-w-2xl rounded-3xl animate-slideUp"
+        className="relative w-full max-w-md md:max-w-2xl rounded-3xl animate-slideUp bg-zinc-900"
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: 'linear-gradient(145deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%)',
-          backdropFilter: 'blur(40px)',
-          border: '1px solid rgba(255,255,255,0.12)',
           boxShadow: '0 40px 100px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.06) inset',
         }}
       >

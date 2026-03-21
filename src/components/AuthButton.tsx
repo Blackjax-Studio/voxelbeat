@@ -1,14 +1,37 @@
 'use client';
 
-import { useUser } from '@auth0/nextjs-auth0/client';
-import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { createClient } from '@/utils/supabase/client';
+import { User } from '@supabase/supabase-js';
+import LoginModal from './LoginModal';
 
 interface AuthButtonProps {
   onAccountClick?: () => void;
 }
 
 export default function AuthButton({ onAccountClick }: AuthButtonProps) {
-  const { user, isLoading } = useUser();
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const supabase = createClient();
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+      setIsLoading(false);
+    };
+
+    getUser();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setUser(session?.user ?? null);
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, [supabase.auth]);
 
   if (isLoading) {
     return (
@@ -30,11 +53,17 @@ export default function AuthButton({ onAccountClick }: AuthButtonProps) {
   }
 
   return (
-    <Link
-      href="/auth/login"
-      className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white font-medium transition-colors"
-    >
-      Post your Music
-    </Link>
+    <>
+      <button
+        onClick={() => setIsLoginModalOpen(true)}
+        className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white font-medium transition-colors"
+      >
+        Post your Music
+      </button>
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+      />
+    </>
   );
 }

@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useUser } from '@auth0/nextjs-auth0/client';
+import { createClient } from "@/utils/supabase/client";
+import { User } from "@supabase/supabase-js";
 import UploadTrackModal from "./UploadTrackModal";
+import LoginModal from "./LoginModal";
+import { useRouter } from "next/navigation";
 
 interface AccountModalProps {
   isOpen: boolean;
@@ -12,9 +15,22 @@ interface AccountModalProps {
 type Tab = 'profile' | 'tracks' | 'danger';
 
 export default function AccountModal({ isOpen, onClose }: AccountModalProps) {
-  const { user, isLoading } = useUser();
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<Tab>('profile');
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const supabase = createClient();
+  const router = useRouter();
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+      setIsLoading(false);
+    };
+    getUser();
+  }, [supabase]);
 
   useEffect(() => {
     if (isOpen) {
@@ -37,20 +53,17 @@ export default function AccountModal({ isOpen, onClose }: AccountModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-fadeIn"
+      className="fixed inset-0 z-[110] flex items-center justify-center p-4"
       onClick={onClose}
     >
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/80 backdrop-blur-xl" />
+      <div className="absolute inset-0 bg-black/80 backdrop-blur-xl animate-fadeIn" />
 
       {/* Modal */}
       <div
-        className="relative w-full max-w-3xl h-[90vh] rounded-3xl animate-slideUp flex flex-col overflow-hidden"
+        className="relative w-full max-w-3xl h-[90vh] rounded-3xl animate-slideUp flex flex-col overflow-hidden bg-zinc-900"
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: 'linear-gradient(145deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%)',
-          backdropFilter: 'blur(40px)',
-          border: '1px solid rgba(255,255,255,0.12)',
           boxShadow: '0 40px 100px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.06) inset',
         }}
       >
@@ -76,15 +89,19 @@ export default function AccountModal({ isOpen, onClose }: AccountModalProps) {
           />
           <div className="flex items-center gap-4 mb-4">
             <h1 className="relative text-3xl font-['Anton'] text-white">Account</h1>
-            <a
-              href="/auth/logout"
+            <button
+              onClick={async () => {
+                await supabase.auth.signOut();
+                router.refresh();
+                onClose();
+              }}
               className="relative px-3 py-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-[10px] font-bold text-white/40 hover:text-white/70 uppercase tracking-widest transition-all flex items-center gap-1.5"
             >
               <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
               </svg>
               Logout
-            </a>
+            </button>
           </div>
 
           {/* Tabs */}
@@ -113,12 +130,16 @@ export default function AccountModal({ isOpen, onClose }: AccountModalProps) {
           ) : !user ? (
             <div className="py-12 text-center">
               <p className="text-white/60 mb-4">Please log in to access your account.</p>
-              <a
-                href="/auth/login"
+              <button
+                onClick={() => setIsLoginModalOpen(true)}
                 className="inline-block px-6 py-2 bg-violet-600 hover:bg-violet-700 rounded-lg text-white font-medium transition-colors"
               >
                 Log In
-              </a>
+              </button>
+              <LoginModal
+                isOpen={isLoginModalOpen}
+                onClose={() => setIsLoginModalOpen(false)}
+              />
             </div>
           ) : (
             <>

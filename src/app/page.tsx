@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import MusicPlayer from "@/components/MusicPlayer";
 import BackgroundVisualization from "@/components/BackgroundVisualization";
 import Header from "@/components/Header";
@@ -12,6 +13,33 @@ import PrivacyModal from "@/components/PrivacyModal";
 import ContactModal from "@/components/ContactModal";
 
 export type VisStyle = 'Circular' | 'Bars' | 'Waveform' | 'Nebula';
+
+export function MessageBanner() {
+    const searchParams = useSearchParams();
+    const message = searchParams.get('message');
+    const [isVisible, setIsVisible] = useState(!!message);
+
+    useEffect(() => {
+        if (message) {
+            setIsVisible(true);
+            const timer = setTimeout(() => setIsVisible(false), 5000);
+            return () => clearTimeout(timer);
+        }
+    }, [message]);
+
+    if (!isVisible || !message) return null;
+
+    return (
+        <div className="fixed top-24 left-1/2 z-[150] animate-slideDown">
+            <div className="bg-green-500 text-white px-6 py-3 rounded-2xl shadow-2xl font-bold text-sm uppercase tracking-widest flex items-center gap-3 border border-white/20">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                </svg>
+                {message}
+            </div>
+        </div>
+    );
+}
 
 export default function Home() {
     const artists = useMemo(() => [
@@ -148,6 +176,7 @@ export default function Home() {
 
     return (
         <main className="h-screen w-full overflow-hidden bg-black flex flex-col">
+            <MessageBanner />
             <BackgroundVisualization analyser={analyser} visStyle={visStyle} />
             <Header
                 onAccountClick={() => setIsAccountOpen(true)}

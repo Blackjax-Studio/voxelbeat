@@ -1,6 +1,4 @@
 import type { Metadata } from "next";
-import { Auth0Provider } from '@auth0/nextjs-auth0/client';
-import { auth0 } from '@/lib/auth0';
 import { Analytics } from '@vercel/analytics/react';
 import "./globals.css";
 
@@ -20,8 +18,6 @@ export default async function RootLayout({
                                    }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await auth0.getSession();
-
   return (
       <html lang="en" className="h-full antialiased">
       <head>
@@ -33,10 +29,8 @@ export default async function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col font-sans">
-        <Auth0Provider user={session?.user}>
-          {children}
-            <Analytics />
-        </Auth0Provider>
+        {children}
+        <Analytics />
       </body>
       </html>
   );
