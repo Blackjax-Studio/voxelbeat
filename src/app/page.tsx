@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import MusicPlayer from "@/components/MusicPlayer";
 import BackgroundVisualization from "@/components/BackgroundVisualization";
@@ -176,7 +176,9 @@ export default function Home() {
 
     return (
         <main className="h-screen w-full overflow-hidden bg-black flex flex-col">
-            <MessageBanner />
+            <Suspense fallback={null}>
+                <MessageBanner />
+            </Suspense>
             <BackgroundVisualization analyser={analyser} visStyle={visStyle} />
             <Header
                 onAccountClick={() => setIsAccountOpen(true)}
