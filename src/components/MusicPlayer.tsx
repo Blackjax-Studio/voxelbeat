@@ -11,18 +11,24 @@ interface Track {
 
 interface MusicPlayerProps {
     tracks: Track[];
+    artistName: string;
     visStyle: VisStyle;
     setVisStyle: (style: VisStyle) => void;
     onViewProfile: () => void;
     setAnalyser: (analyser: AnalyserNode | null) => void;
+    onNextArtist: () => void;
+    onPrevArtist: () => void;
 }
 
 export default function MusicPlayer({
                                         tracks,
+                                        artistName,
                                         visStyle,
                                         setVisStyle,
                                         onViewProfile,
-                                        setAnalyser: setParentAnalyser
+                                        setAnalyser: setParentAnalyser,
+                                        onNextArtist,
+                                        onPrevArtist
                                     }: MusicPlayerProps) {
     const audioRef = useRef<HTMLAudioElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -37,6 +43,9 @@ export default function MusicPlayer({
     const [volume, setVolume] = useState(0.8);
     const [isMuted, setIsMuted] = useState(false);
     const [showTrackList, setShowTrackList] = useState(false);
+
+    const isPlayingRef = useRef(false);
+    const playPromiseRef = useRef<Promise<void> | null>(null);
 
     const setupAudio = useCallback(() => {
         if (!audioRef.current) return;
@@ -61,7 +70,129 @@ export default function MusicPlayer({
         } catch (err) {
             console.error('Audio setup error:', err);
         }
-    }, [audioContext, analyser]);
+    }, [audioContext, analyser, setParentAnalyser]);
+
+    const playAudio = useCallback(async () => {
+        if (!audioRef.current) return;
+
+        setupAudio();
+
+        try {
+            // Wait for any existing play promise to resolve or catch to ensure sequential access
+            if (playPromiseRef.current) {
+                await playPromiseRef.current.catch(() => {});
+            }
+
+            // Check if we still want to play after the wait
+            if (!isPlayingRef.current) return;
+
+            const playPromise = audioRef.current.play();
+            playPromiseRef.current = playPromise;
+
+            await playPromise;
+            setIsPlaying(true);
+        } catch (err) {
+            if (err instanceof Error && err.name !== 'AbortError' && err.name !== 'NotAllowedError') {
+                console.error('Playback error:', err);
+            }
+            // If it was an AbortError, we don't necessarily want to set isPlaying to false
+            // because a new play request might already be starting.
+            if (err instanceof Error && err.name !== 'AbortError') {
+                setIsPlaying(false);
+                isPlayingRef.current = false;
+            }
+        } finally {
+            // Only clear the ref if it's still pointing to the promise we just awaited
+            if (playPromiseRef.current === playPromiseRef.current) {
+                // playPromiseRef.current = null;
+            }
+        }
+    }, [setupAudio]);
+
+    const pauseAudio = useCallback(async () => {
+        if (!audioRef.current) return;
+
+        isPlayingRef.current = false;
+        setIsPlaying(false);
+
+        try {
+            // Wait for any pending play promise before pausing
+            if (playPromiseRef.current) {
+                await playPromiseRef.current.catch(() => {});
+            }
+            audioRef.current.pause();
+        } catch (err) {
+            console.error('Pause error:', err);
+        }
+    }, []);
+
+    const togglePlay = () => {
+        if (isPlaying) {
+            pauseAudio();
+        } else {
+            isPlayingRef.current = true;
+            playAudio();
+        }
+    };
+
+    const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const time = parseFloat(e.target.value);
+        if (audioRef.current) {
+            audioRef.current.currentTime = time;
+            setCurrentTime(time);
+        }
+    };
+
+    const formatTime = (time: number) => {
+        if (isNaN(time)) return "0:00";
+        const mins = Math.floor(time / 60);
+        const secs = Math.floor(time % 60);
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+    };
+
+    const toggleMute = () => {
+        if (audioRef.current) {
+            const newMuted = !isMuted;
+            audioRef.current.muted = newMuted;
+            setIsMuted(newMuted);
+        }
+    };
+
+    useEffect(() => {
+        const audio = audioRef.current;
+        if (!audio) return;
+
+        // Force reload the audio source when track index or tracks list change
+        // This ensures the browser starts loading the new track immediately
+        audio.load();
+
+        if (isPlayingRef.current) {
+            playAudio();
+        } else {
+            pauseAudio();
+        }
+    }, [currentTrackIndex, tracks, playAudio, pauseAudio]);
+
+    // First interaction handler
+    useEffect(() => {
+        const handleFirstInteraction = () => {
+            if (!isPlayingRef.current) {
+                isPlayingRef.current = true;
+                playAudio();
+            }
+            document.removeEventListener('click', handleFirstInteraction);
+            document.removeEventListener('keydown', handleFirstInteraction);
+            document.removeEventListener('touchstart', handleFirstInteraction);
+        };
+        document.addEventListener('click', handleFirstInteraction);
+        document.addEventListener('keydown', handleFirstInteraction);
+        document.addEventListener('touchstart', handleFirstInteraction);
+        return () => {
+            document.removeEventListener('click', handleFirstInteraction);
+            document.removeEventListener('keydown', handleFirstInteraction);
+            document.removeEventListener('touchstart', handleFirstInteraction);
+        };
+    }, [playAudio]);
 
     // Cleanup on unmount
     useEffect(() => {
@@ -75,87 +206,7 @@ export default function MusicPlayer({
         };
     }, [audioContext]);
 
-    const togglePlay = () => {
-        if (!audioRef.current) return;
-        if (isPlaying) {
-            audioRef.current.pause();
-            setIsPlaying(false);
-        } else {
-            setupAudio();
-            audioRef.current.play()
-                .then(() => setIsPlaying(true))
-                .catch(err => {
-                    if (err.name !== 'NotAllowedError') console.error(err);
-                    setIsPlaying(false);
-                });
-        }
-    };
-
-    const nextTrack = () => setCurrentTrackIndex((i) => (i + 1) % tracks.length);
-    const prevTrack = () => setCurrentTrackIndex((i) => (i - 1 + tracks.length) % tracks.length);
-
-    const formatTime = (s: number) => {
-        if (!s || isNaN(s)) return "0:00";
-        const m = Math.floor(s / 60);
-        const sec = Math.floor(s % 60);
-        return `${m}:${sec.toString().padStart(2, '0')}`;
-    };
-
-    const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (!audioRef.current) return;
-        const t = parseFloat(e.target.value);
-        audioRef.current.currentTime = t;
-        setCurrentTime(t);
-    };
-
-    const handleVolume = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const v = parseFloat(e.target.value);
-        setVolume(v);
-        if (audioRef.current) audioRef.current.volume = v;
-        setIsMuted(v === 0);
-    };
-
-    const toggleMute = () => {
-        if (!audioRef.current) return;
-        const next = !isMuted;
-        setIsMuted(next);
-        audioRef.current.volume = next ? 0 : volume;
-    };
-
-    useEffect(() => {
-        const handleFirstInteraction = () => {
-            if (!isPlaying) setIsPlaying(true);
-            document.removeEventListener('click', handleFirstInteraction);
-            document.removeEventListener('keydown', handleFirstInteraction);
-            document.removeEventListener('touchstart', handleFirstInteraction);
-        };
-        document.addEventListener('click', handleFirstInteraction);
-        document.addEventListener('keydown', handleFirstInteraction);
-        document.addEventListener('touchstart', handleFirstInteraction);
-        return () => {
-            document.removeEventListener('click', handleFirstInteraction);
-            document.removeEventListener('keydown', handleFirstInteraction);
-            document.removeEventListener('touchstart', handleFirstInteraction);
-        };
-    }, []);
-
-    useEffect(() => {
-        const audio = audioRef.current;
-        if (!audio) return;
-
-        if (isPlaying) {
-            if (audioContext && audioContext.state === 'suspended') {
-                audioContext.resume();
-            } else {
-                setupAudio();
-            }
-            audio.play().catch(err => {
-                if (err.name !== 'NotAllowedError') console.error(err);
-                setIsPlaying(false);
-            });
-        }
-    }, [currentTrackIndex, isPlaying, setupAudio, audioContext]);
-
+    // Track list scroll ref and effects
     useEffect(() => {
         const audio = audioRef.current;
         if (!audio) return;
@@ -187,17 +238,54 @@ export default function MusicPlayer({
         };
     }, [currentTrackIndex]);
 
+    const lastTracksRef = useRef<Track[]>([]);
+
+    useEffect(() => {
+        // Reset track index only when tracks (artist) actually change
+        const isSameTracks = tracks.length === lastTracksRef.current.length &&
+                           tracks.every((t, i) => t.src === lastTracksRef.current[i]?.src);
+
+        if (tracks.length > 0 && !isSameTracks) {
+            console.log(`[DEBUG_LOG] Artist tracks changed, resetting track index to 0. Length: ${tracks.length}`);
+            setCurrentTrackIndex(0);
+            lastTracksRef.current = tracks;
+        }
+    }, [tracks]);
+
     useEffect(() => {
         // Change visualization style when track changes
         const styles: VisStyle[] = ['Circular', 'Bars', 'Waveform', 'Nebula'];
         const nextStyle = styles[currentTrackIndex % styles.length];
         setVisStyle(nextStyle);
 
+        // Reset progress for new track
         setLoadProgress(0);
         setCurrentTime(0);
         setDuration(0);
         setIsBuffering(false);
     }, [currentTrackIndex, setVisStyle]);
+
+    // Track list toggle
+    const toggleTrackList = (e: React.MouseEvent) => {
+        e.stopPropagation(); // Prevent potentially triggering other handlers
+        setShowTrackList(!showTrackList);
+    };
+
+    const nextTrack = useCallback(() => {
+        setCurrentTrackIndex((prev) => {
+            const nextIndex = (prev + 1) % tracks.length;
+            console.log(`[DEBUG_LOG] Next track index: ${nextIndex} (was ${prev}), length: ${tracks.length}`);
+            return nextIndex;
+        });
+    }, [tracks.length]);
+
+    const prevTrack = useCallback(() => {
+        setCurrentTrackIndex((prev) => {
+            const nextIndex = (prev - 1 + tracks.length) % tracks.length;
+            console.log(`[DEBUG_LOG] Prev track index: ${nextIndex} (was ${prev}), length: ${tracks.length}`);
+            return nextIndex;
+        });
+    }, [tracks.length]);
 
     const trackColors = [
         'from-violet-600 to-fuchsia-600',
@@ -221,7 +309,9 @@ export default function MusicPlayer({
                  }}>
 
                 {/* Album Art Area */}
-                <div className={`relative w-full aspect-video md:aspect-[21/9] bg-gradient-to-br ${currentColor} overflow-hidden`}>
+                <div
+                    onClick={onViewProfile}
+                    className={`relative w-full aspect-video md:aspect-[21/9] bg-gradient-to-br ${currentColor} overflow-hidden cursor-pointer group`}>
                     {/* Animated background pattern */}
                     <div className="absolute inset-0 opacity-30"
                          style={{
@@ -230,27 +320,23 @@ export default function MusicPlayer({
                          }} />
 
                     {/* Center logo */}
-                    <div className="absolute inset-0 flex items-center justify-center px-4">
+                    <div className="absolute inset-0 flex items-center justify-center px-4 group-hover:scale-105 transition-transform duration-500">
                         <div className="flex items-center gap-4">
                             <div className={`w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center
-                  ${isPlaying ? 'animate-spin' : ''} bg-yellow-400 backdrop-blur-md border border-white/20 shadow-xl`}
+                  ${isPlaying ? 'animate-spin' : ''} bg-yellow-400 backdrop-blur-md border border-white/20 shadow-xl group-hover:shadow-yellow-400/20 transition-all`}
                                  style={{ animationDuration: '8s' }}>
                   <span className="text-xl md:text-2xl font-black text-black tracking-tighter"
                         style={{ fontFamily: "'Anton', sans-serif" }}>ELP</span>
                             </div>
                             <div className="flex flex-col">
-                                <span className="text-white/60 text-[10px] font-black tracking-[0.3em] uppercase">ElpepesUno</span>
+                                <span className="text-white/60 text-[10px] font-black tracking-[0.3em] uppercase">{artistName}</span>
                                 <p className="text-white font-bold text-sm md:text-lg leading-tight truncate drop-shadow-md">
-                                    {tracks[currentTrackIndex].name}
+                                    {tracks[currentTrackIndex]?.name || "Loading..."}
                                 </p>
                             </div>
                         </div>
                     </div>
 
-                    {/* Track number badge */}
-                    <div className="absolute top-3 right-3 w-7 h-7 rounded-full bg-black/50 backdrop-blur-md border border-white/10 flex items-center justify-center">
-                        <span className="text-white/80 text-[10px] font-black">{currentTrackIndex + 1}</span>
-                    </div>
 
                     {/* Buffering indicator */}
                     {isBuffering && (
@@ -274,7 +360,7 @@ export default function MusicPlayer({
                     )}
 
                     {/* Seek bar */}
-                    <div className="flex flex-col gap-1.5">
+                    <div className="relative flex flex-col gap-1.5 py-2">
                         <div className="relative w-full h-1 bg-white/10 rounded-full overflow-hidden">
                             {/* Buffer progress */}
                             <div className="absolute inset-y-0 left-0 bg-white/10 rounded-full transition-all duration-300"
@@ -290,8 +376,8 @@ export default function MusicPlayer({
                             step={0.1}
                             value={currentTime}
                             onChange={handleSeek}
-                            className="absolute opacity-0 w-full cursor-pointer"
-                            style={{ height: '12px', marginTop: '-6px' }}
+                            className="absolute z-20 opacity-0 w-full cursor-pointer top-0 bottom-0 left-0 right-0"
+                            style={{ height: 'auto', margin: 0 }}
                         />
                         <div className="flex justify-between">
                             <span className="text-[10px] text-white/30 font-mono">{formatTime(currentTime)}</span>
@@ -300,9 +386,8 @@ export default function MusicPlayer({
                     </div>
 
                     {/* Main controls */}
-                    <div className="flex items-center justify-between">
-
-                        {/* Volume */}
+                    <div className="flex items-center justify-between px-2">
+                        {/* Volume/Mute */}
                         <button onClick={toggleMute} className="text-white/40 hover:text-white/80 transition-colors">
                             {isMuted || volume === 0 ? (
                                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -319,9 +404,10 @@ export default function MusicPlayer({
                             )}
                         </button>
 
-                        {/* Prev */}
+                        {/* Prev Track */}
                         <button onClick={prevTrack}
-                                className="w-10 h-10 flex items-center justify-center text-white/60 hover:text-white transition-all hover:scale-110">
+                                className="w-10 h-10 flex items-center justify-center text-white/60 hover:text-white transition-all hover:scale-110"
+                                title="Previous Track">
                             <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/>
                             </svg>
@@ -342,16 +428,17 @@ export default function MusicPlayer({
                             )}
                         </button>
 
-                        {/* Next */}
+                        {/* Next Track */}
                         <button onClick={nextTrack}
-                                className="w-10 h-10 flex items-center justify-center text-white/60 hover:text-white transition-all hover:scale-110">
+                                className="w-10 h-10 flex items-center justify-center text-white/60 hover:text-white transition-all hover:scale-110"
+                                title="Next Track">
                             <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
                             </svg>
                         </button>
 
                         {/* Track list toggle */}
-                        <button onClick={() => setShowTrackList(!showTrackList)}
+                        <button onClick={toggleTrackList}
                                 className={`transition-colors ${showTrackList ? 'text-white' : 'text-white/40 hover:text-white/80'}`}>
                             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>

@@ -17,10 +17,13 @@ export default function Header({ onAccountClick }: HeaderProps) {
       <div className="px-4 md:px-6 py-3 md:py-4">
         {/* Top row - Logo and buttons */}
         <div className="flex items-center justify-between mb-3 md:mb-0 md:grid md:grid-cols-3">
-          <div className="flex items-center gap-4">
-            <h1 className="text-xl md:text-2xl font-['Anton'] tracking-tight text-white">
+          <div className="flex flex-col gap-0">
+            <h1 className="text-xl md:text-2xl font-['Anton'] tracking-tight text-white leading-tight">
               VoxelBeat
             </h1>
+            <p className="text-[10px] md:text-xs font-bold text-white/50 tracking-wider uppercase leading-none">
+              Indie Game Musicians
+            </p>
           </div>
 
           {/* Desktop Search - Centered */}
