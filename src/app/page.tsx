@@ -36,23 +36,27 @@ async function getInitialArtists() {
     );
 
     // Group tracks by user
-    const usersWithTracks = users.map((user: any) => ({
-      ...user,
-      tracks: tracks.filter((track: any) => track.user_id === user.id)
-    }));
+    const usersWithTracks = users.map((user: any) => {
+      const userTracks = tracks.filter((track: any) => track.user_id === user.id);
+
+      // Randomize tracks for this user using Fisher-Yates shuffle
+      for (let i = userTracks.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [userTracks[i], userTracks[j]] = [userTracks[j], userTracks[i]];
+      }
+
+      return {
+        ...user,
+        tracks: userTracks
+      };
+    });
 
     // Filter users with tracks
     const filteredUsers = usersWithTracks.filter(user => user.tracks && user.tracks.length > 0);
 
-    // Randomize the order of users using Fisher-Yates shuffle with timestamp seed
-    const seed = Date.now();
-    const random = (i: number) => {
-      const x = Math.sin(seed + i) * 10000;
-      return x - Math.floor(x);
-    };
-
+    // Randomize the order of users using Fisher-Yates shuffle
     for (let i = filteredUsers.length - 1; i > 0; i--) {
-      const j = Math.floor(random(i) * (i + 1));
+      const j = Math.floor(Math.random() * (i + 1));
       [filteredUsers[i], filteredUsers[j]] = [filteredUsers[j], filteredUsers[i]];
     }
 
@@ -78,7 +82,7 @@ async function getInitialArtists() {
           avatar_url,
           avatar_display_url,
           tracks: await Promise.all(
-            user.tracks.map(async (track: any) => {
+            (user.tracks || []).filter((track: any) => track).map(async (track: any) => {
               try {
                 const command = new GetObjectCommand({
                   Bucket: S3_BUCKET,
