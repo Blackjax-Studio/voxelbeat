@@ -8,6 +8,10 @@ interface PrivacyModalProps {
 }
 
 export default function PrivacyModal({ isOpen, onClose }: PrivacyModalProps) {
+  const companyName = process.env.NEXT_PUBLIC_COMPANY_NAME || "Blackjax, LLC";
+  const appName = process.env.NEXT_PUBLIC_APP_NAME || "VoxelBeat";
+  const contactEmail = process.env.NEXT_PUBLIC_CONTACT_EMAIL || "contact@blackjaxstudio.com";
+
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -58,8 +62,8 @@ export default function PrivacyModal({ isOpen, onClose }: PrivacyModalProps) {
                 <strong>Effective Date:</strong> March 21, 2026
               </p>
               <p className="mb-4">
-                This Privacy Policy describes how <strong>Blackjax, LLC</strong> ("we," "us," or "our") collects, uses, shares, and protects
-                your personal information when you use the VoxelBeat platform and services (the "Service"). By using the Service, you agree to the practices
+                This Privacy Policy describes how <strong>{companyName}</strong> ("we," "us," or "our") collects, uses, shares, and protects
+                your personal information when you use the {appName} platform and services (the "Service"). By using the Service, you agree to the practices
                 described in this Privacy Policy.
               </p>
               <p className="mb-4">
@@ -105,7 +109,7 @@ export default function PrivacyModal({ isOpen, onClose }: PrivacyModalProps) {
                 <li>Store and stream your uploaded audio files;</li>
                 <li>Display your public profile and contact information to other users;</li>
                 <li>Enable semantic search by generating vector embeddings from your track metadata using OpenAI's API;</li>
-                <li>Post and share your Content on third-party platforms (YouTube, SoundCloud, social media, etc.) to promote the Service and drive traffic to your VoxelBeat profile;</li>
+                <li>Post and share your Content on third-party platforms (YouTube, SoundCloud, social media, etc.) to promote the Service and drive traffic to your {appName} profile;</li>
                 <li>Process and respond to your inquiries and support requests.</li>
               </ul>
 
@@ -122,7 +126,7 @@ export default function PrivacyModal({ isOpen, onClose }: PrivacyModalProps) {
                 <li>Detect, prevent, and respond to fraud, abuse, security incidents, and other harmful activities;</li>
                 <li>Enforce our Terms of Service;</li>
                 <li>Comply with legal obligations, court orders, and law enforcement requests;</li>
-                <li>Protect the rights, property, and safety of Blackjax, LLC, our users, and the public.</li>
+                <li>Protect the rights, property, and safety of {companyName}, our users, and the public.</li>
               </ul>
 
               <p className="mb-2"><strong>2.4 For Communication</strong></p>
@@ -148,7 +152,7 @@ export default function PrivacyModal({ isOpen, onClose }: PrivacyModalProps) {
                 <li>Contact information (email, phone number, Discord username) <strong>if you choose to provide it</strong>.</li>
               </ul>
               <p className="mb-3 italic text-white/60">
-                You control what contact information you share. Only provide contact details you are comfortable making public. By uploading Content to VoxelBeat, you consent to VoxelBeat and Blackjax, LLC sharing your Content on external platforms (YouTube, social media, etc.) with attribution linking back to your profile, for the purpose of promoting the Service and driving traffic to your VoxelBeat profile.
+                You control what contact information you share. Only provide contact details you are comfortable making public. By uploading Content to {appName}, you consent to {appName} and {companyName} sharing your Content on external platforms (YouTube, social media, etc.) with attribution linking back to your profile, for the purpose of promoting the Service and driving traffic to your {appName} profile.
               </p>
 
               <p className="mb-2"><strong>3.2 Service Providers</strong></p>
@@ -169,12 +173,12 @@ export default function PrivacyModal({ isOpen, onClose }: PrivacyModalProps) {
                 <li>Legal process (subpoenas, court orders, government requests);</li>
                 <li>Requests from law enforcement or regulatory authorities;</li>
                 <li>Investigations of potential violations of our Terms of Service;</li>
-                <li>Efforts to protect the safety, rights, or property of Blackjax, LLC, our users, or the public.</li>
+                <li>Efforts to protect the safety, rights, or property of {companyName}, our users, or the public.</li>
               </ul>
 
               <p className="mb-2"><strong>3.4 Business Transfers</strong></p>
               <p className="mb-3">
-                If <strong>Blackjax, LLC</strong> is involved in a merger, acquisition, sale of assets, or bankruptcy, your information may be transferred as part of that transaction.
+                If <strong>{companyName}</strong> is involved in a merger, acquisition, sale of assets, or bankruptcy, your information may be transferred as part of that transaction.
                 We will notify you via email or a prominent notice on the Service before your information is transferred and becomes subject to a different privacy policy.
               </p>
 
@@ -224,7 +228,7 @@ export default function PrivacyModal({ isOpen, onClose }: PrivacyModalProps) {
               <p className="mb-2"><strong>6.1 Access and Portability</strong></p>
               <p className="mb-3">
                 You have the right to access and download a copy of your personal information. You can view and manage your profile and tracks through your account settings.
-                To request a complete data export, contact us at <a href="mailto:contact@blackjaxstudio.com" className="underline hover:text-white">contact@blackjaxstudio.com</a>.
+                To request a complete data export, contact us at <a href={`mailto:${contactEmail}`} className="underline hover:text-white">{contactEmail}</a>.
               </p>
 
               <p className="mb-2"><strong>6.2 Correction</strong></p>
@@ -262,7 +266,7 @@ export default function PrivacyModal({ isOpen, onClose }: PrivacyModalProps) {
                 <li>Right to non-discrimination for exercising your privacy rights.</li>
               </ul>
 
-              <p className="mb-2"><strong>To exercise your rights, contact us at <a href="mailto:contact@blackjaxstudio.com" className="underline hover:text-white">contact@blackjaxstudio.com</a>.</strong></p>
+              <p className="mb-2"><strong>To exercise your rights, contact us at <a href={`mailto:${contactEmail}`} className="underline hover:text-white">{contactEmail}</a>.</strong></p>
             </section>
 
             <section>
@@ -307,7 +311,7 @@ export default function PrivacyModal({ isOpen, onClose }: PrivacyModalProps) {
                 We do not knowingly collect personal information from children under 13.
               </p>
               <p className="mb-2">
-                If you are a parent or guardian and believe your child has provided us with personal information, please contact us at <a href="mailto:contact@blackjaxstudio.com" className="underline hover:text-white">contact@blackjaxstudio.com</a>.
+                If you are a parent or guardian and believe your child has provided us with personal information, please contact us at <a href={`mailto:${contactEmail}`} className="underline hover:text-white">{contactEmail}</a>.
                 We will promptly delete such information from our systems.
               </p>
             </section>
@@ -345,8 +349,8 @@ export default function PrivacyModal({ isOpen, onClose }: PrivacyModalProps) {
                 If you have questions, concerns, or requests regarding this Privacy Policy or our data practices, please contact us:
               </p>
               <p className="mt-2">
-                <strong>Blackjax, LLC</strong><br />
-                Email: <a href="mailto:contact@blackjaxstudio.com" className="underline hover:text-white">contact@blackjaxstudio.com</a>
+                <strong>{companyName}</strong><br />
+                Email: <a href={`mailto:${contactEmail}`} className="underline hover:text-white">{contactEmail}</a>
               </p>
               <p className="mt-3">
                 We will respond to privacy inquiries within 30 days.

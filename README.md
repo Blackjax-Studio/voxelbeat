@@ -37,8 +37,8 @@ A modern music platform built with Next.js that allows composers to share and di
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/music-website.git
-cd music-website
+git clone https://github.com/Blackjax-Studio/voxelbeat.git
+cd voxelbeat
 ```
 
 2. Install dependencies:
