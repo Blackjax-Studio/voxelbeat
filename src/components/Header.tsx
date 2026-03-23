@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import AuthButton from "./AuthButton";
+import { TAG_CATEGORIES } from "@/constants/tags";
 
 interface HeaderProps {
   onAccountClick?: () => void;
@@ -20,20 +21,6 @@ export default function Header({ onAccountClick, onTagsChange, onOpenTerms, onOp
   const isInitialMount = useRef(true);
   const tagDebounceTimer = useRef<NodeJS.Timeout | null>(null);
 
-  const tagCategories = {
-    "Genre": [
-      "RPG", "FPS", "Horror", "Action", "Adventure", "Platformer", "Simulation", "Strategy", "Racing", "Puzzle", "Fighting", "Roguelike", "Metroidvania", "Visual Novel", "Survival", "Bullet Hell", "Tower Defense", "Stealth", "Music/Rhythm", "Party", "Sandbox", "Open World", "Soulslike"
-    ],
-    "Style": [
-      "Retro", "Chiptune", "8-bit", "16-bit", "Orchestral", "Electronic", "Ambient", "Cinematic", "Lo-fi", "Synthwave", "Industrial", "Experimental", "Minimalist", "Jazz", "Heavy Metal", "Gothic", "Folk", "Classical", "Vaporwave", "Phonk", "Glitch", "Acid", "Trance"
-    ],
-    "Theme": [
-      "Cyberpunk", "Fantasy", "Sci-Fi", "Medieval", "Noir", "Space", "Nature", "Urban", "Western", "Steampunk", "Post-Apocalyptic", "High-Fantasy", "Dark-Fantasy", "Lovecraftian", "Oceanic", "Arctic", "Desert", "Oriental", "Greek Mythology", "Egyptian", "Viking", "Dystopian", "Utopian"
-    ],
-    "Vibe": [
-      "Boss Fight", "Dungeon", "Menu", "Combat", "Exploration", "Chill", "Suspense", "Victory", "Defeat", "Title Theme", "Final Boss", "Town", "Overworld", "Credits", "Level Select", "Shop", "Dialogue", "Cutscene", "Puzzle Solved", "Game Over", "Intense", "Eerie", "Heroic", "Melancholy", "Mysterious"
-    ]
-  };
 
   const toggleTag = (tag: string) => {
     const newTags = pendingTags.includes(tag)
@@ -154,7 +141,7 @@ export default function Header({ onAccountClick, onTagsChange, onOpenTerms, onOp
                    boxShadow: '0 20px 50px rgba(0,0,0,0.8)'
                  }}>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 xs:gap-6">
-                {Object.entries(tagCategories).map(([category, tags]) => (
+                {Object.entries(TAG_CATEGORIES).map(([category, tags]) => (
                   <div key={category} className="flex flex-col gap-2 xs:gap-3">
                     <h3 className="text-[9px] xs:text-[10px] font-black text-white/30 uppercase tracking-[0.2em] border-b border-white/5 pb-1">
                       {category}

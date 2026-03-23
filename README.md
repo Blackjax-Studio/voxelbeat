@@ -88,6 +88,12 @@ OPENAI_API_KEY=your_openai_api_key
 
 # Web3Forms (for contact form)
 NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY=your_web3forms_access_key
+
+# Application Branding
+NEXT_PUBLIC_COMPANY_NAME="Blackjax, LLC"
+NEXT_PUBLIC_APP_NAME="VoxelBeat"
+NEXT_PUBLIC_CONTACT_EMAIL="contact@blackjaxstudio.com"
+NEXT_PUBLIC_COPYRIGHT_YEAR="2026"
 ```
 
 ## Available Scripts

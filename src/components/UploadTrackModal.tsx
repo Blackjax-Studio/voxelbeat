@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { TAG_CATEGORIES } from "@/constants/tags";
 
 interface UploadTrackModalProps {
   isOpen: boolean;
@@ -17,20 +18,6 @@ export default function UploadTrackModal({ isOpen, onClose, onSuccess }: UploadT
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  const tagCategories = {
-    "Genre": [
-      "RPG", "FPS", "Horror", "Action", "Adventure", "Platformer", "Simulation", "Strategy", "Racing", "Puzzle", "Fighting", "Roguelike", "Metroidvania", "Visual Novel", "Survival", "Bullet Hell", "Tower Defense", "Stealth", "Music/Rhythm", "Party", "Sandbox", "Open World", "Soulslike"
-    ],
-    "Style": [
-      "Retro", "Chiptune", "8-bit", "16-bit", "Orchestral", "Electronic", "Ambient", "Cinematic", "Lo-fi", "Synthwave", "Industrial", "Experimental", "Minimalist", "Jazz", "Heavy Metal", "Gothic", "Folk", "Classical", "Vaporwave", "Phonk", "Glitch", "Acid", "Trance"
-    ],
-    "Theme": [
-      "Cyberpunk", "Fantasy", "Sci-Fi", "Medieval", "Noir", "Space", "Nature", "Urban", "Western", "Steampunk", "Post-Apocalyptic", "High-Fantasy", "Dark-Fantasy", "Lovecraftian", "Oceanic", "Arctic", "Desert", "Oriental", "Greek Mythology", "Egyptian", "Viking", "Dystopian", "Utopian"
-    ],
-    "Vibe": [
-      "Boss Fight", "Dungeon", "Menu", "Combat", "Exploration", "Chill", "Suspense", "Victory", "Defeat", "Title Theme", "Final Boss", "Town", "Overworld", "Credits", "Level Select", "Shop", "Dialogue", "Cutscene", "Puzzle Solved", "Game Over", "Intense", "Eerie", "Heroic", "Melancholy", "Mysterious"
-    ]
-  };
 
   const toggleTag = (tag: string) => {
     setSelectedTags(prev =>
@@ -330,7 +317,7 @@ export default function UploadTrackModal({ isOpen, onClose, onSuccess }: UploadT
             </div>
             
             <div className="space-y-4 bg-white/5 rounded-xl p-4 border border-white/10">
-              {Object.entries(tagCategories).map(([category, tags]) => (
+              {Object.entries(TAG_CATEGORIES).map(([category, tags]) => (
                 <div key={category} className="space-y-2">
                   <h3 className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">
                     {category}

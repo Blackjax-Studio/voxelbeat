@@ -81,7 +81,7 @@ export async function getArtistBySlug(slug: string) {
           name: track.title,
           src: track.url,
           description: track.description || '',
-          tags: track.tags || [],
+          tags: track.tags ? (typeof track.tags === 'string' ? track.tags.split(',').filter((t: string) => t.trim()) : track.tags) : [],
         }))
         .filter((track: any) => track.src)
     };

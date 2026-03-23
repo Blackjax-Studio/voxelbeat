@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
-import { User } from "@supabase/supabase-js";
 import UploadTrackModal from "./UploadTrackModal";
 import EditTrackModal from "./EditTrackModal";
 import ConfirmationModal from "./ConfirmationModal";
@@ -10,6 +9,10 @@ import LoginModal from "./LoginModal";
 import SignupModal from "./SignupModal";
 import { useRouter } from "next/navigation";
 import { useTrackPlayer } from "@/hooks/useTrackPlayer";
+import { useAccountUser } from "@/hooks/useAccountUser";
+import { useProfile } from "@/hooks/useProfile";
+import { useAccountTracks } from "@/hooks/useAccountTracks";
+import { useAccountModals } from "@/hooks/useAccountModals";
 import ProfileTab from "./account/ProfileTab";
 import TracksTab from "./account/TracksTab";
 import DangerZoneTab from "./account/DangerZoneTab";
@@ -24,36 +27,22 @@ interface AccountModalProps {
 type Tab = 'profile' | 'tracks' | 'danger';
 
 export default function AccountModal({ isOpen, onClose, onOpenTerms, onOpenPrivacy }: AccountModalProps) {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [activeTab, setActiveTab] = useState<Tab>('profile');
-  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingTrack, setEditingTrack] = useState<any>(null);
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-  const [isSignupModalOpen, setIsSignupModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  // Profile fields state
-  const [profileData, setProfileData] = useState({
-    studio_name: '',
-    bio: '',
-    spotify_link: '',
-    soundcloud_link: '',
-    discord_username: '',
-    instagram_link: '',
-    contact_email: '',
-    phone_number: '',
-    itch_io_link: '',
-    website_link: '',
-    avatar_url: '',
-    avatar_display_url: ''
-  });
+  const supabase = createClient();
+  const router = useRouter();
 
-  const [tracks, setTracks] = useState<any[]>([]);
-  const [isTracksLoading, setIsTracksLoading] = useState(false);
-
+  // Custom hooks
+  const { user, isLoading } = useAccountUser(isOpen);
+  const {
+    profileData,
+    isSaving,
+    saveStatus,
+    fetchProfile,
+    updateProfile,
+    handleInputChange
+  } = useProfile();
   const {
     playingTrackId,
     currentTime,
@@ -68,84 +57,34 @@ export default function AccountModal({ isOpen, onClose, onOpenTerms, onOpenPriva
     isPaused
   } = useTrackPlayer();
 
-  // Confirmation Modals State
-  const [deleteTrackConfirm, setDeleteTrackConfirm] = useState<{ isOpen: boolean; trackId: string | null; trackTitle: string }>({
-    isOpen: false,
-    trackId: null,
-    trackTitle: ''
-  });
-  const [deleteAccountConfirm, setDeleteAccountConfirm] = useState({
-    isOpen: false,
-    step: 1, // 1: warning, 2: final warning + prompt
-    inputValue: ''
-  });
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  const supabase = createClient();
-  const router = useRouter();
+  const { tracks, isTracksLoading, fetchTracks, deleteTrack } = useAccountTracks(clearResources);
+  const {
+    isUploadModalOpen,
+    setIsUploadModalOpen,
+    isEditModalOpen,
+    setIsEditModalOpen,
+    editingTrack,
+    setEditingTrack,
+    isLoginModalOpen,
+    setIsLoginModalOpen,
+    isSignupModalOpen,
+    setIsSignupModalOpen,
+    deleteTrackConfirm,
+    setDeleteTrackConfirm,
+    deleteAccountConfirm,
+    setDeleteAccountConfirm
+  } = useAccountModals();
 
   useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-      if (user) {
-        fetchProfile();
-        fetchTracks();
-      } else {
-        setIsLoading(false);
-      }
-    };
-    if (isOpen) {
-      getUser();
-    } else {
+    if (isOpen && user) {
+      fetchProfile();
+      fetchTracks();
+    }
+    if (!isOpen) {
       stopAudio();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen]);
-
-  const fetchProfile = async () => {
-    try {
-      const response = await fetch('/api/user/profile');
-      if (response.ok) {
-        const data = await response.json();
-        setProfileData({
-          studio_name: data.studio_name || '',
-          bio: data.bio || '',
-          spotify_link: data.spotify_link || '',
-          soundcloud_link: data.soundcloud_link || '',
-          discord_username: data.discord_username || '',
-          instagram_link: data.instagram_link || '',
-          contact_email: data.contact_email || '',
-          phone_number: data.phone_number || '',
-          itch_io_link: data.itch_io_link || '',
-          website_link: data.website_link || '',
-          avatar_url: data.avatar_url || '',
-          avatar_display_url: data.avatar_display_url || data.avatar_url || ''
-        });
-      }
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const fetchTracks = async () => {
-    setIsTracksLoading(true);
-    clearResources();
-
-    try {
-      const response = await fetch('/api/tracks');
-      if (response.ok) {
-        const data = await response.json();
-        setTracks(data);
-      }
-    } catch (error) {
-      console.error('Error fetching tracks:', error);
-    } finally {
-      setIsTracksLoading(false);
-    }
-  };
+  }, [isOpen, user]);
 
   const handleDeleteTrack = async () => {
     const id = deleteTrackConfirm.trackId;
@@ -153,11 +92,8 @@ export default function AccountModal({ isOpen, onClose, onOpenTerms, onOpenPriva
 
     setIsDeleting(true);
     try {
-      const response = await fetch(`/api/tracks/${id}`, {
-        method: 'DELETE',
-      });
-      if (response.ok) {
-        setTracks(tracks.filter(track => track.id !== id));
+      const success = await deleteTrack(id);
+      if (success) {
         setDeleteTrackConfirm({ isOpen: false, trackId: null, trackTitle: '' });
       } else {
         alert('Failed to delete track');
@@ -196,44 +132,6 @@ export default function AccountModal({ isOpen, onClose, onOpenTerms, onOpenPriva
     }
   };
 
-  const handleUpdateProfile = async () => {
-    setIsSaving(true);
-    setSaveStatus('idle');
-    try {
-      // Create a copy of profileData to send to the server
-      // We explicitly exclude avatar_display_url to prevent accidental saves of signed URLs
-      const { avatar_display_url, ...updateData } = profileData;
-
-      const response = await fetch('/api/user/profile', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updateData),
-      });
-      if (!response.ok) {
-        throw new Error('Failed to update profile');
-      }
-      setSaveStatus('success');
-      setTimeout(() => setSaveStatus('idle'), 3000);
-
-      // Refresh profile to get updated display URL and confirm key preservation
-      await fetchProfile();
-    } catch (error) {
-      console.error('Error updating profile:', error);
-      setSaveStatus('error');
-      setTimeout(() => setSaveStatus('idle'), 3000);
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleInputChange = (field: string, value: string) => {
-    setProfileData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
 
   useEffect(() => {
     if (isOpen) {
@@ -368,7 +266,7 @@ export default function AccountModal({ isOpen, onClose, onOpenTerms, onOpenPriva
                   isSaving={isSaving}
                   saveStatus={saveStatus}
                   handleInputChange={handleInputChange}
-                  handleUpdateProfile={handleUpdateProfile}
+                  handleUpdateProfile={updateProfile}
                   fetchProfile={fetchProfile}
                 />
               )}

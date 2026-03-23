@@ -295,6 +295,7 @@ export default function HomeClient({ initialArtists }: HomeClientProps) {
                 setAnalyser={setAnalyser}
                 onNextArtist={handleNextArtist}
                 onPrevArtist={handlePrevArtist}
+                artistKey={currentArtistIndex}
               />
 
               {artists.length > 1 && (
