@@ -44,6 +44,18 @@ async function getInitialArtists() {
     // Filter users with tracks
     const filteredUsers = usersWithTracks.filter(user => user.tracks && user.tracks.length > 0);
 
+    // Randomize the order of users using Fisher-Yates shuffle with timestamp seed
+    const seed = Date.now();
+    const random = (i: number) => {
+      const x = Math.sin(seed + i) * 10000;
+      return x - Math.floor(x);
+    };
+
+    for (let i = filteredUsers.length - 1; i > 0; i--) {
+      const j = Math.floor(random(i) * (i + 1));
+      [filteredUsers[i], filteredUsers[j]] = [filteredUsers[j], filteredUsers[i]];
+    }
+
     // Generate presigned URLs for avatars and tracks
     const usersWithPresignedUrls = await Promise.all(
       filteredUsers.map(async (user) => {
