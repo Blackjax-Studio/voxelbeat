@@ -159,14 +159,15 @@ export default async function Home() {
     "@context": "https://schema.org",
     "@type": "MusicGroup",
     "name": artist.name,
-    "description": artist.profile?.bio,
+    "description": `VoxelBeat is the premier platform for indie game developers to discover talented musicians and composers like ${artist.name}. Find the perfect original soundtrack for your project.`,
     "image": artist.avatarUrl,
+    "url": `${process.env.NEXT_PUBLIC_SITE_URL || 'https://voxelbeat.com'}/composers/${slugify(artist.name)}`,
     "track": Array.isArray(artist.tracks) ? artist.tracks.map((track: any) => ({
       "@type": "MusicRecording",
       "name": track.name,
-      "description": track.description,
+      "description": `Original game music track "${track.name}" by ${artist.name} on VoxelBeat.`,
       "genre": Array.isArray(track.tags) ? track.tags : [],
-      "url": `${process.env.NEXT_PUBLIC_SITE_URL || 'https://voxelbeat.com'}/composers/${slugify(artist.name)}/${slugify(track.name)}`
+      "url": `${process.env.NEXT_PUBLIC_SITE_URL || 'https://voxelbeat.com'}/composers/${slugify(artist.name)}`
     })) : []
   }));
 
@@ -188,12 +189,13 @@ export default async function Home() {
         <div style={{ padding: '2rem', maxWidth: '800px', margin: '0 auto', color: '#eee', backgroundColor: '#111' }}>
           <header>
             <img src="/lumi-logo-2.png" alt="VoxelBeat Logo" width="100" height="100" />
-            <h1>VoxelBeat — Discover Indie Game Music</h1>
-            <p>The premier platform for indie game musicians and developers to connect. Find your game's unique sound with vectorized search.</p>
+            <h1>VoxelBeat | Discover Indie Game Music & Connect with Composers</h1>
+            <p>VoxelBeat is the premier platform for indie game developers to discover talented musicians and composers. Find the perfect original soundtrack for your RPG, platformer, or horror game with our advanced semantic search. Connect directly with artists and explore unique game music vibes.</p>
           </header>
           <main>
             <section>
               <h2>Platform Features</h2>
+              <p>VoxelBeat offers specialized tools for game developers and composers:</p>
               <ul>
                 <li><strong>Semantic Discovery</strong>: Find music by feel — describe your scene and our vectorized search does the rest</li>
                 <li><strong>Vibe Matching</strong>: Search for 'chilly, mysterious, and lo-fi' to find the exact atmosphere for your level</li>
@@ -204,12 +206,13 @@ export default async function Home() {
               </ul>
             </section>
             <section>
-              <h2>Featured Artists & Composers</h2>
+              <h2>Featured Indie Game Composers</h2>
+              <p>Explore portfolios from some of our top artists:</p>
               {initialArtists.map((artist, index) => (
                 <article key={index} style={{ marginBottom: '2rem', borderBottom: '1px solid #333', paddingBottom: '1rem' }}>
                   <h3>{artist.name}</h3>
                   {artist.avatarUrl && <img src={artist.avatarUrl} alt={`${artist.name} avatar`} width="60" height="60" style={{ borderRadius: '50%' }} />}
-                  {artist.profile?.bio && <p><strong>Bio:</strong> {artist.profile.bio}</p>}
+                  {artist.profile?.bio && <p><strong>Composer Bio:</strong> {artist.profile.bio}</p>}
 
                   <h4>Music Catalog</h4>
                   <ul>

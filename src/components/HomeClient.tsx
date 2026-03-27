@@ -226,26 +226,30 @@ export default function HomeClient({ initialArtists }: HomeClientProps) {
 
             {/* Hidden SEO content for search engines */}
             <div className="sr-only">
+              <h1>VoxelBeat | Discover Indie Game Music & Connect with Composers</h1>
+              <p>VoxelBeat is the premier platform for indie game developers to discover talented musicians and composers. Find the perfect original soundtrack for your RPG, platformer, or horror game with our advanced semantic search. Connect directly with artists and explore unique game music vibes.</p>
+              
+              <h2>Platform Features</h2>
               {features.map((feature, index) => (
                 <div key={index}>
                   <h3>{feature.text}</h3>
                   <p>{feature.subtext}</p>
                 </div>
               ))}
+              
+              <h2>Featured Indie Game Composers</h2>
               {artists.map((artist, index) => (
                 <div key={index}>
                   <h3>{artist.name}</h3>
-                  <p><strong>Bio:</strong> {artist.profile?.bio}</p>
+                  <p><strong>Composer Bio:</strong> {artist.profile?.bio}</p>
                   <ul>
                     {artist.tracks.map((track: any, tIndex: number) => (
                       <li key={tIndex}>
-                        <strong>{track.name}</strong>: {track.description}
+                        <strong>Track: {track.name}</strong>: {track.description}
                       </li>
                     ))}
                   </ul>
-                  {artist.profile?.websiteLink && <a href={artist.profile.websiteLink}>Website</a>}
-                  {artist.profile?.spotifyLink && <a href={artist.profile.spotifyLink}>Spotify</a>}
-                  {artist.profile?.soundcloudLink && <a href={artist.profile.soundcloudLink}>SoundCloud</a>}
+                  {artist.profile?.websiteLink && <a href={artist.profile.websiteLink}>{artist.name} Official Website</a>}
                 </div>
               ))}
               {/* Semantic fallback for global sections */}

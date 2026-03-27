@@ -7,8 +7,9 @@ export const metadata: Metadata = {
     default: "VoxelBeat | Discover Indie Game Music & Connect with Composers",
     template: "%s | VoxelBeat"
   },
-  description: "Discover talented indie game musicians and composers for your video game projects. Browse original soundtracks, explore game music by genre and style, and connect directly with artists. Find the perfect music for RPGs, platformers, horror games, and more.",
+  description: "VoxelBeat is the premier platform for indie game developers to discover talented musicians and composers. Find the perfect original soundtrack for your RPG, platformer, or horror game with our advanced semantic search. Connect directly with artists and explore unique game music vibes.",
   keywords: [
+    "VoxelBeat",
     "indie game music",
     "game composer",
     "video game soundtrack",
@@ -23,7 +24,8 @@ export const metadata: Metadata = {
     "game sound design",
     "hire game composer",
     "indie game developer",
-    "game music directory"
+    "game music directory",
+    "semantic search game music"
   ],
   authors: [{ name: "Blackjax, LLC" }],
   creator: "Blackjax, LLC",
@@ -44,20 +46,20 @@ export const metadata: Metadata = {
     url: '/',
     siteName: 'VoxelBeat',
     title: 'VoxelBeat | Discover Indie Game Music & Connect with Composers',
-    description: 'Discover talented indie game musicians and composers for your video game projects. Browse original soundtracks and connect directly with artists.',
+    description: 'VoxelBeat is the premier platform for indie game developers to discover talented musicians and composers. Find the perfect original soundtrack for your project with advanced semantic search.',
     images: [
       {
         url: '/lumi-logo-2.png',
         width: 1200,
         height: 630,
-        alt: 'VoxelBeat - Indie Game Music Platform',
+        alt: 'VoxelBeat - Discover Indie Game Music',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'VoxelBeat | Discover Indie Game Music & Connect with Composers',
-    description: 'Discover talented indie game musicians and composers for your video game projects. Browse original soundtracks and connect directly with artists.',
+    description: 'VoxelBeat is the premier platform for indie game developers to discover talented musicians and composers. Find the perfect original soundtrack for your project with advanced semantic search.',
     images: ['/lumi-logo-2.png'],
     site: '@voxelbeat',
     creator: '@voxelbeat',
