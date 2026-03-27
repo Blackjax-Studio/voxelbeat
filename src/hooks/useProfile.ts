@@ -58,11 +58,12 @@ export function useProfile() {
     }
   }, []);
 
-  const updateProfile = useCallback(async () => {
+  const updateProfile = useCallback(async (overrides?: Partial<ProfileData>) => {
     setIsSaving(true);
     setSaveStatus('idle');
     try {
-      const { avatar_display_url, ...updateData } = profileData;
+      const { avatar_display_url, ...baseData } = profileData;
+      const updateData = { ...baseData, ...overrides };
 
       const response = await fetch('/api/user/profile', {
         method: 'POST',

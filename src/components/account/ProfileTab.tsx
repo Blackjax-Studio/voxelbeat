@@ -1,7 +1,7 @@
 "use client";
 
 import { User } from "@supabase/supabase-js";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AlertModal from "../AlertModal";
 
 interface ProfileData {
@@ -25,7 +25,7 @@ interface ProfileTabProps {
   isSaving: boolean;
   saveStatus: 'idle' | 'success' | 'error';
   handleInputChange: (field: string, value: string) => void;
-  handleUpdateProfile: () => Promise<void>;
+  handleUpdateProfile: (overrides?: Partial<ProfileData>) => Promise<void>;
   fetchProfile: () => Promise<void>;
 }
 
@@ -58,6 +58,16 @@ export default function ProfileTab({
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [countryCode, setCountryCode] = useState("+1");
+
+  useEffect(() => {
+    if (profileData.phone_number) {
+      const match = profileData.phone_number.match(/^(\+(\d+))\s*(.*)$/);
+      if (match) {
+        setCountryCode(match[1]);
+      }
+    }
+  }, [profileData.phone_number]);
 
   const validateField = (name: string, value: string) => {
     if (!value) return '';
@@ -121,7 +131,16 @@ export default function ProfileTab({
       return;
     }
 
-    await handleUpdateProfile();
+    // Use the combined phone number for update
+    let overrides: Partial<ProfileData> = {};
+    if (profileData.phone_number && !profileData.phone_number.startsWith('+')) {
+      const cleanCountryCode = countryCode.trim();
+      const fullPhoneNumber = cleanCountryCode ? `${cleanCountryCode} ${profileData.phone_number}` : profileData.phone_number;
+      overrides.phone_number = fullPhoneNumber;
+      handleInputChange('phone_number', fullPhoneNumber);
+    }
+
+    await handleUpdateProfile(overrides);
   };
 
   const handleAvatarFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -399,13 +418,31 @@ export default function ProfileTab({
             </div>
             <div>
               <label className="text-xs text-white/60 uppercase tracking-wide">Phone Number</label>
-              <input
-                type="tel"
-                value={profileData.phone_number}
-                onChange={(e) => onInputChange('phone_number', e.target.value)}
-                placeholder="+1 (555) 123-4567"
-                className="w-full mt-1.5 bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white text-sm placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-violet-500"
-              />
+              <div className="flex mt-1.5 gap-2">
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40 text-sm pointer-events-none">+</span>
+                  <input
+                    type="text"
+                    value={countryCode.replace('+', '')}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/[^0-9]/g, '');
+                      setCountryCode('+' + val);
+                    }}
+                    placeholder="1"
+                    className="bg-white/10 border border-white/20 rounded-lg pl-6 pr-2 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 w-16"
+                  />
+                </div>
+                <input
+                  type="tel"
+                  value={profileData.phone_number.startsWith('+') ? profileData.phone_number.split(' ').slice(1).join(' ') : profileData.phone_number}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    onInputChange('phone_number', value);
+                  }}
+                  placeholder="(555) 123-4567"
+                  className="flex-1 bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white text-sm placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                />
+              </div>
             </div>
           </div>
           <div>

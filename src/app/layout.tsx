@@ -75,11 +75,12 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/lumi-logo-2.png" },
-      { url: "/favicon.ico" }
+      { url: "/favicon.ico" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" }
     ],
     apple: [
-      { url: "/lumi-logo-2.png" },
+      { url: "/apple-touch-icon.png" }
     ],
   },
   manifest: '/manifest.json',
@@ -112,6 +113,8 @@ export default async function RootLayout({
   return (
       <html lang="en" className="h-full antialiased" suppressHydrationWarning>
       <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
