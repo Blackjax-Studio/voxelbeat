@@ -39,7 +39,7 @@ export async function GET() {
     );
 
     // Sort according to favoriteIds order and generate presigned URLs
-    const sortedTracks = favoriteIds.map(id => trackRows.find((t: any) => t.id === id)).filter(Boolean);
+    const sortedTracks = favoriteIds.map((id: string) => trackRows.find((t: any) => t.id === id)).filter(Boolean);
 
     const transformedTracks = await Promise.all(sortedTracks.map(async (track: any) => {
       let url = track.url;
