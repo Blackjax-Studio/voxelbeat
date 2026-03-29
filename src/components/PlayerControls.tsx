@@ -8,6 +8,8 @@ interface PlayerControlsProps {
     onPrevTrack: () => void;
     onNextTrack: () => void;
     onToggleTrackList?: () => void;
+    onToggleFavorite?: () => void;
+    isFavorited?: boolean;
     showTrackList?: boolean;
     showTrackListButton?: boolean;
 }
@@ -22,6 +24,8 @@ export default function PlayerControls({
     onPrevTrack,
     onNextTrack,
     onToggleTrackList,
+    onToggleFavorite,
+    isFavorited = false,
     showTrackList,
     showTrackListButton = false,
 }: PlayerControlsProps) {
@@ -92,6 +96,19 @@ export default function PlayerControls({
                 </button>
                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 rounded bg-black/80 backdrop-blur-md border border-white/10 text-white text-[9px] font-bold uppercase tracking-wider opacity-0 group-hover/tooltip:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
                     Next Track
+                </div>
+            </div>
+
+            {/* Favorite */}
+            <div className="group/tooltip relative flex items-center justify-center">
+                <button onClick={onToggleFavorite}
+                        className={`w-8 h-8 xs:w-10 xs:h-10 flex items-center justify-center transition-all hover:scale-110 ${isFavorited ? 'text-red-500' : 'text-white/40 hover:text-white/80'}`}>
+                    <svg className="w-4 h-4 xs:w-5 xs:h-5" fill={isFavorited ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                </button>
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 rounded bg-black/80 backdrop-blur-md border border-white/10 text-white text-[9px] font-bold uppercase tracking-wider opacity-0 group-hover/tooltip:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+                    {isFavorited ? 'Remove from Favorites' : 'Add to Favorites'}
                 </div>
             </div>
 

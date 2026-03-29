@@ -103,6 +103,7 @@ export async function POST(request: NextRequest) {
         filetype: track.filetype,
         filesize: track.filesize,
         num_plays: track.num_plays,
+        favorite_count: track.favorite_count,
         created_at: track.created_at,
         updated_at: track.updated_at,
         similarity: track.similarity,

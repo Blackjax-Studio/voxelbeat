@@ -117,15 +117,27 @@ export default function TracksTab({
                     )}
                   </button>
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-white font-medium text-sm truncate">{track.title}</h3>
-                    <div className="flex items-center gap-2">
-                      <p className="text-white/50 text-xs">
-                        {track.num_plays || 0} plays • {new Date(track.created_at).toLocaleDateString()}
-                      </p>
+                    <h3 className="text-white font-bold text-base truncate">{track.title}</h3>
+                    <div className="flex items-center gap-4 mt-1">
+                      <div className="flex items-center gap-1.5 bg-cyan-400/10 px-2 py-0.5 rounded-md border border-cyan-400/20">
+                        <svg className="w-3.5 h-3.5 text-cyan-400" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M8 5v14l11-7z" />
+                        </svg>
+                        <span className="text-cyan-400 text-xs font-black">{track.num_plays || 0}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 bg-red-400/10 px-2 py-0.5 rounded-md border border-red-400/20">
+                        <svg className="w-3.5 h-3.5 text-red-400/60" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                        <span className="text-red-400/80 text-xs font-black">{track.favorite_count || 0}</span>
+                      </div>
+                      <div className="text-white/30 text-[10px] font-medium uppercase tracking-wider">
+                        {new Date(track.created_at).toLocaleDateString()}
+                      </div>
                       {track.filesize && (
-                        <span className="text-white/30 text-[10px]">
-                          • {(track.filesize / (1024 * 1024)).toFixed(1)}MB
-                        </span>
+                        <div className="text-white/20 text-[10px] font-medium">
+                          {(track.filesize / (1024 * 1024)).toFixed(1)}MB
+                        </div>
                       )}
                     </div>
                     {track.description && (

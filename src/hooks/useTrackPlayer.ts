@@ -7,6 +7,7 @@ export interface Track {
   filesize?: number;
   filetype?: string;
   num_plays?: number;
+  favorite_count?: number;
   created_at: string;
   description?: string;
   tags?: string;

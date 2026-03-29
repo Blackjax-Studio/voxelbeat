@@ -13,8 +13,11 @@ import SignupModal from "@/components/SignupModal";
 import TermsModal from "@/components/TermsModal";
 import PrivacyModal from "@/components/PrivacyModal";
 import ContactModal from "@/components/ContactModal";
+import FavoritesPromptModal from "@/components/FavoritesPromptModal";
 import { VisStyle } from "@/types/visualizer";
 import { slugify } from "@/utils/slugify";
+import { createClient } from "@/utils/supabase/client";
+import { User } from "@supabase/supabase-js";
 
 interface HomeClientProps {
   initialArtists: any[];
@@ -116,9 +119,91 @@ export default function HomeClient({ initialArtists }: HomeClientProps) {
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   const [isTermsOpen, setIsTermsOpen] = useState(false);
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
+  const [isViewingFavorites, setIsViewingFavorites] = useState(false);
+  const [favorites, setFavorites] = useState<any[]>([]);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isSignupOpen, setIsSignupOpen] = useState(false);
+  const [isFavoritesPromptOpen, setIsFavoritesPromptOpen] = useState(false);
   const [isContactOpen, setIsContactOpen] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const supabase = createClient();
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+    };
+
+    getUser();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setUser(session?.user ?? null);
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, [supabase.auth]);
+
+  const [isLoadingFavorites, setIsLoadingFavorites] = useState(false);
+
+  // Fetch favorites from backend
+  useEffect(() => {
+    if (user) {
+      const fetchFavorites = async () => {
+        try {
+          setIsLoadingFavorites(true);
+          const response = await fetch('/api/user/favorites');
+          if (response.ok) {
+            const data = await response.json();
+            setFavorites(data.favorites || []);
+          }
+        } catch (error) {
+          console.error('Error fetching favorites:', error);
+        } finally {
+          setIsLoadingFavorites(false);
+        }
+      };
+      fetchFavorites();
+    } else {
+      setFavorites([]);
+    }
+  }, [user]);
+
+  const handleToggleFavorite = async (track: any) => {
+    if (!user) {
+      setIsFavoritesPromptOpen(true);
+      return;
+    }
+
+    const isFavorited = favorites.some(f => f.id === track.id);
+    const action = isFavorited ? 'remove' : 'add';
+
+    // Optimistic update
+    setFavorites(prev => {
+      if (isFavorited) {
+        return prev.filter(f => f.id !== track.id);
+      }
+      return [...prev, { ...track, artistName: track.artistName || currentArtist?.name }];
+    });
+
+    try {
+      const response = await fetch('/api/user/favorites', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ trackId: track.id, action }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update favorites on backend');
+      }
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+      // Revert optimistic update on error
+      const refreshedFavorites = await fetch('/api/user/favorites').then(res => res.json());
+      setFavorites(refreshedFavorites.favorites || []);
+    }
+  };
 
   const handleNextArtist = () => {
     setCurrentArtistIndex((prev) => (prev + 1) % artists.length);
@@ -191,6 +276,17 @@ export default function HomeClient({ initialArtists }: HomeClientProps) {
       <BackgroundVisualization analyser={analyser} visStyle={visStyle} />
       <Header
         onAccountClick={() => setIsAccountOpen(true)}
+        onFavoritesClick={() => {
+          if (!user) {
+            setIsFavoritesPromptOpen(true);
+          } else if (isLoadingFavorites) {
+            // Do nothing while loading
+          } else {
+            setIsViewingFavorites(!isViewingFavorites);
+          }
+        }}
+        isViewingFavorites={isViewingFavorites}
+        isLoadingFavorites={isLoadingFavorites}
         onTagsChange={(hasTags) => {
           // We always have a relatively tall header now because of the mobile search
           // and we want to ensure the features are not cut off.
@@ -290,16 +386,19 @@ export default function HomeClient({ initialArtists }: HomeClientProps) {
               ) || null}
 
               <MusicPlayer
-                tracks={tracks}
-                artistName={currentArtist?.name || 'Unknown Artist'}
-                avatarUrl={currentArtist?.avatarUrl}
+                tracks={isViewingFavorites ? favorites : tracks}
+                artistName={isViewingFavorites ? 'Your Favorites' : (currentArtist?.name || 'Unknown Artist')}
+                avatarUrl={isViewingFavorites ? undefined : currentArtist?.avatarUrl}
                 visStyle={visStyle}
                 setVisStyle={setVisStyle}
                 onViewProfile={handleViewProfile}
                 setAnalyser={setAnalyser}
-                onNextArtist={handleNextArtist}
-                onPrevArtist={handlePrevArtist}
-                artistKey={currentArtistIndex}
+                onNextArtist={isViewingFavorites ? () => {} : handleNextArtist}
+                onPrevArtist={isViewingFavorites ? () => {} : handlePrevArtist}
+                onToggleFavorite={handleToggleFavorite}
+                isFavorited={(trackId) => favorites.some(f => f.id === trackId)}
+                artistKey={isViewingFavorites ? 'favorites' : currentArtistIndex}
+                isFavoritesMode={isViewingFavorites}
               />
 
               {artists.length > 1 && (
@@ -319,6 +418,50 @@ export default function HomeClient({ initialArtists }: HomeClientProps) {
               ) || null}
             </div>
           )}
+          
+          {/* View Favorites Button - Below Player */}
+          <div className="mt-8 xs:mt-12 mb-4 z-10 flex justify-center">
+            <button
+              onClick={() => {
+                if (!user) {
+                  setIsFavoritesPromptOpen(true);
+                } else if (isLoadingFavorites) {
+                  // Do nothing while loading
+                } else {
+                  setIsViewingFavorites(!isViewingFavorites);
+                }
+              }}
+              disabled={isLoadingFavorites}
+              className={`flex items-center gap-2 px-6 py-3 rounded-full font-bold uppercase tracking-widest text-xs transition-all border shadow-lg group
+                ${isViewingFavorites 
+                  ? 'bg-red-500/20 text-red-500 border-red-500/30' 
+                  : 'bg-white/5 text-white/60 border-white/10 hover:bg-white/10 hover:text-white hover:border-white/20'}
+                ${isLoadingFavorites ? 'opacity-50 cursor-wait' : ''}`}
+            >
+              {isLoadingFavorites ? (
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <svg 
+                  className={`w-4 h-4 transition-transform group-hover:scale-110 ${isViewingFavorites ? 'animate-pulse' : ''}`} 
+                  fill={isViewingFavorites ? "currentColor" : "none"} 
+                  viewBox="0 0 24 24" 
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+              )}
+              <span>
+                {isLoadingFavorites 
+                  ? "Loading..." 
+                  : (isViewingFavorites ? "Viewing Favorites" : "View Favorites")}
+              </span>
+              {favorites.length > 0 && !isViewingFavorites && !isLoadingFavorites && (
+                <span className="ml-1 px-1.5 py-0.5 rounded-full bg-white/10 text-[10px] text-white/40 group-hover:bg-white/20 group-hover:text-white/60 transition-colors">
+                  {favorites.length}
+                </span>
+              )}
+            </button>
+          </div>
         </div>
         </div>
         <Footer
@@ -365,6 +508,12 @@ export default function HomeClient({ initialArtists }: HomeClientProps) {
           setIsSignupOpen(false);
           setIsPrivacyOpen(true);
         }}
+      />
+      <FavoritesPromptModal
+        isOpen={isFavoritesPromptOpen}
+        onClose={() => setIsFavoritesPromptOpen(false)}
+        onSignup={() => setIsSignupOpen(true)}
+        onLogin={() => setIsLoginOpen(true)}
       />
       <TermsModal
         isOpen={isTermsOpen}

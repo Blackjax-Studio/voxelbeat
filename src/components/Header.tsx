@@ -6,14 +6,17 @@ import { TAG_CATEGORIES } from "@/constants/tags";
 
 interface HeaderProps {
   onAccountClick?: () => void;
+  onFavoritesClick?: () => void;
   onTagsChange?: (hasTags: boolean) => void;
   onOpenTerms?: () => void;
   onOpenPrivacy?: () => void;
   onOpenSignup?: () => void;
   onSearch?: (searchQuery: string, selectedTags: string[]) => void;
+  isViewingFavorites?: boolean;
+  isLoadingFavorites?: boolean;
 }
 
-export default function Header({ onAccountClick, onTagsChange, onOpenTerms, onOpenPrivacy, onOpenSignup, onSearch }: HeaderProps) {
+export default function Header({ onAccountClick, onFavoritesClick, onTagsChange, onOpenTerms, onOpenPrivacy, onOpenSignup, onSearch, isViewingFavorites, isLoadingFavorites }: HeaderProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [isTagsDropdownOpen, setIsTagsDropdownOpen] = useState(false);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -105,6 +108,9 @@ export default function Header({ onAccountClick, onTagsChange, onOpenTerms, onOp
             <AuthButton
               onAccountClick={onAccountClick}
               onOpenSignup={onOpenSignup}
+              onFavoritesClick={onFavoritesClick}
+              isViewingFavorites={isViewingFavorites}
+              isLoadingFavorites={isLoadingFavorites}
             />
           </div>
         </div>
