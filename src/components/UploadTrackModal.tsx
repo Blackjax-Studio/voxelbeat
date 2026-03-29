@@ -17,6 +17,7 @@ export default function UploadTrackModal({ isOpen, onClose, onSuccess }: UploadT
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
 
 
   const toggleTag = (tag: string) => {
@@ -41,6 +42,31 @@ export default function UploadTrackModal({ isOpen, onClose, onSuccess }: UploadT
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setTrackFile(e.target.files[0]);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const file = e.dataTransfer.files[0];
+      if (file.type.startsWith('audio/')) {
+        setTrackFile(file);
+      }
     }
   };
 
@@ -210,7 +236,16 @@ export default function UploadTrackModal({ isOpen, onClose, onSuccess }: UploadT
           {/* File Upload */}
           <div>
             <label className="text-xs text-white/60 uppercase tracking-wide block mb-2">Audio File</label>
-            <div className="border-2 border-dashed border-white/20 rounded-xl p-6 hover:border-violet-500/50 transition-colors">
+            <div 
+              className={`border-2 border-dashed rounded-xl p-6 transition-all duration-200 ${
+                isDragging 
+                  ? 'border-violet-500 bg-violet-500/10 scale-[1.02]' 
+                  : 'border-white/20 hover:border-violet-500/50'
+              }`}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            >
               {trackFile ? (
                 <div className="text-center">
                   <div className="w-16 h-16 mx-auto mb-3 rounded-xl bg-gradient-to-br from-violet-600/40 to-fuchsia-600/40 flex items-center justify-center">
