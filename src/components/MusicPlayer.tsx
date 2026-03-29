@@ -21,7 +21,7 @@ interface MusicPlayerProps {
     avatarUrl?: string;
     visStyle: VisStyle;
     setVisStyle: (style: VisStyle) => void;
-    onViewProfile: () => void;
+    onViewProfile: (track?: Track) => void;
     setAnalyser: (analyser: AnalyserNode | null) => void;
     onNextArtist: () => void;
     onPrevArtist: () => void;
@@ -161,7 +161,7 @@ export default function MusicPlayer({
                         currentColor={currentColor}
                         isPlaying={isPlaying}
                         isBuffering={isBuffering}
-                        onViewProfile={onViewProfile}
+                        onViewProfile={() => onViewProfile(tracks[currentTrackIndex])}
                     />
 
                     {/* Left Controls Area */}
@@ -229,19 +229,17 @@ export default function MusicPlayer({
                         )}
 
                         {/* View Profile Button (Single column or mobile) */}
-                        {!isFavoritesMode && (
-                            <div className={`pt-1 border-t border-white/5 xl:hidden`}>
-                                <button
-                                    onClick={onViewProfile}
-                                    className="w-full py-2.5 xs:py-3 rounded-lg xs:rounded-xl bg-gradient-to-r from-violet-600/20 to-fuchsia-600/20 border border-violet-500/30 text-white font-bold text-xs xs:text-sm hover:from-violet-600/30 hover:to-fuchsia-600/30 transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
-                                >
-                                    <svg className="w-3.5 h-3.5 xs:w-4 xs:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                    </svg>
-                                    View Profile
-                                </button>
-                            </div>
-                        )}
+                        <div className={`pt-1 border-t border-white/5 xl:hidden`}>
+                            <button
+                                onClick={() => onViewProfile(tracks[currentTrackIndex])}
+                                className="w-full py-2.5 xs:py-3 rounded-lg xs:rounded-xl bg-gradient-to-r from-violet-600/20 to-fuchsia-600/20 border border-violet-500/30 text-white font-bold text-xs xs:text-sm hover:from-violet-600/30 hover:to-fuchsia-600/30 transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
+                            >
+                                <svg className="w-3.5 h-3.5 xs:w-4 xs:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                                {isFavoritesMode ? `Artist Profile` : `View Profile`}
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -262,21 +260,19 @@ export default function MusicPlayer({
                     />
 
                     {/* View Profile Button (Right side) */}
-                    {!isFavoritesMode && (
-                        <div className="mt-auto pt-4 border-t border-white/5">
-                            <button
-                                onClick={onViewProfile}
-                                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-violet-600/20 to-fuchsia-600/20 border border-violet-500/30 text-white font-bold text-sm hover:from-violet-600/30 hover:to-fuchsia-600/30 transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 group/btn"
-                            >
-                                <div className="p-1.5 rounded-lg bg-violet-500/20 group-hover/btn:bg-violet-500/30 transition-colors">
-                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                    </svg>
-                                </div>
-                                <span>View Artist Profile</span>
-                            </button>
-                        </div>
-                    )}
+                    <div className="mt-auto pt-4 border-t border-white/5">
+                        <button
+                            onClick={() => onViewProfile(tracks[currentTrackIndex])}
+                            className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-violet-600/20 to-fuchsia-600/20 border border-violet-500/30 text-white font-bold text-sm hover:from-violet-600/30 hover:to-fuchsia-600/30 transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 group/btn"
+                        >
+                            <div className="p-1.5 rounded-lg bg-violet-500/20 group-hover/btn:bg-violet-500/30 transition-colors">
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                            </div>
+                            <span>{isFavoritesMode ? `View Artist Profile` : `View Artist Profile`}</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 

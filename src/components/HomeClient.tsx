@@ -261,14 +261,41 @@ export default function HomeClient({ initialArtists }: HomeClientProps) {
     };
   }, [analyser, isTransitioning]);
 
-  const handleViewProfile = () => {
-    if (currentArtist?.name) {
-      const slug = slugify(currentArtist.name);
-      // Next.js routing is more reliable with standard links or router.push to the exact path
-      router.push(`/composers/${slug}`);
-    } else {
-      setIsProfileOpen(true);
+  const [selectedProfile, setSelectedProfile] = useState<any>(null);
+
+  const handleViewProfile = (track?: any) => {
+    if (track && track.artistName && isViewingFavorites) {
+      // Find the artist by name
+      const artist = artists.find(a => a.name === track.artistName);
+      if (artist) {
+        setSelectedProfile(artist.profile);
+        setIsProfileOpen(true);
+        return;
+      }
     }
+    
+    setSelectedProfile(currentArtist?.profile);
+    setIsProfileOpen(true);
+  };
+
+  const handleVisitArtist = (studioName?: string) => {
+    if (!studioName) return;
+
+    // 1. Exit favorites mode
+    setIsViewingFavorites(false);
+
+    // 2. Find the artist in current results
+    const index = artists.findIndex(a => a.name === studioName);
+    if (index !== -1) {
+      setCurrentArtistIndex(index);
+    } else {
+      // If not in current results, maybe perform a search or just use what we have
+      // For now, if we found them by clicking a track, they SHOULD be in artists
+      console.log('Artist not found in current results:', studioName);
+    }
+
+    // 3. Close the modal
+    setIsProfileOpen(false);
   };
 
   return (
@@ -369,7 +396,7 @@ export default function HomeClient({ initialArtists }: HomeClientProps) {
             </div>
           ) : (
             <div className={`relative w-full xl:w-auto xl:max-w-[880px] lg:max-w-md md:max-w-md mx-auto flex items-center justify-center shrink-0 scale-100 xs:scale-105 sm:scale-110`}>
-              {artists.length > 1 && (
+              {!isViewingFavorites && artists.length > 1 && (
                 <div className="group/tooltip relative">
                   <button
                     onClick={handlePrevArtist}
@@ -383,7 +410,7 @@ export default function HomeClient({ initialArtists }: HomeClientProps) {
                     Previous Artist
                   </div>
                 </div>
-              ) || null}
+              )}
 
               <MusicPlayer
                 tracks={isViewingFavorites ? favorites : tracks}
@@ -401,7 +428,7 @@ export default function HomeClient({ initialArtists }: HomeClientProps) {
                 isFavoritesMode={isViewingFavorites}
               />
 
-              {artists.length > 1 && (
+              {!isViewingFavorites && artists.length > 1 && (
                 <div className="group/tooltip relative">
                   <button
                     onClick={handleNextArtist}
@@ -415,7 +442,7 @@ export default function HomeClient({ initialArtists }: HomeClientProps) {
                     Next Artist
                   </div>
                 </div>
-              ) || null}
+              )}
             </div>
           )}
           
@@ -472,11 +499,12 @@ export default function HomeClient({ initialArtists }: HomeClientProps) {
       </div>
     </div>
 
-      {currentArtist && (
+      {selectedProfile && (
         <ProfileModal
           isOpen={isProfileOpen}
           onClose={() => setIsProfileOpen(false)}
-          profile={currentArtist.profile}
+          profile={selectedProfile}
+          onVisitArtist={() => handleVisitArtist(selectedProfile.studioName)}
         />
       )}
       <AccountModal

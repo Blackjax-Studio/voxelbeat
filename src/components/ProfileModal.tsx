@@ -29,9 +29,10 @@ interface ProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
   profile?: UserProfile;
+  onVisitArtist?: () => void;
 }
 
-export default function ProfileModal({ isOpen, onClose, profile }: ProfileModalProps) {
+export default function ProfileModal({ isOpen, onClose, profile, onVisitArtist }: ProfileModalProps) {
   const getInitials = (name: string) => {
     if (!name) return "";
     return name
@@ -116,6 +117,24 @@ export default function ProfileModal({ isOpen, onClose, profile }: ProfileModalP
             <p className="relative text-center text-white/60 text-sm font-medium">
               Music Producer & Artist
             </p>
+          )}
+
+          {/* Go To Artist Button */}
+          {onVisitArtist && (
+            <div className="relative flex justify-center mt-4">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onVisitArtist();
+                }}
+                className="px-6 py-2.5 rounded-full bg-white text-black font-black uppercase tracking-widest text-xs hover:scale-105 transition-all active:scale-95 shadow-lg shadow-white/10 flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.5v-9l6 4.5-6 4.5z" />
+                </svg>
+                Go to Artist
+              </button>
+            </div>
           )}
         </div>
 

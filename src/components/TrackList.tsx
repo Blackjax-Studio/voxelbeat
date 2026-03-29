@@ -102,20 +102,6 @@ export default function TrackList({
                         </div>
                         <div className="flex-1 flex flex-col min-w-0">
                             <span className={`text-[10px] xs:text-xs font-medium truncate ${i === currentTrackIndex ? 'text-white' : 'text-white/70 group-hover:text-white'}`}>{track.name}</span>
-                            <div className="flex items-center gap-2 mt-0.5">
-                                <div className="flex items-center gap-0.5 text-[8px] xs:text-[9px] text-white/40">
-                                    <svg className="w-2.5 h-2.5 text-cyan-400" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M8 5v14l11-7z" />
-                                    </svg>
-                                    <span>{track.num_plays || 0}</span>
-                                </div>
-                                <div className="flex items-center gap-0.5 text-[8px] xs:text-[9px] text-white/40">
-                                    <svg className="w-2.5 h-2.5 text-red-400/60" fill="currentColor" viewBox="0 0 24 24">
-                                        <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                                    </svg>
-                                    <span>{track.favorite_count || 0}</span>
-                                </div>
-                            </div>
                             {track.description && (
                                 <p className="text-white/40 text-[8px] xs:text-[9px] leading-tight italic mt-0.5">
                                     {track.description}
@@ -147,20 +133,6 @@ export default function TrackList({
                     </div>
                     <div className="flex-1 flex flex-col min-w-0">
                         <span className={`text-[13px] font-bold truncate ${i === currentTrackIndex ? 'text-white' : 'text-white/70 group-hover:text-white'}`}>{track.name}</span>
-                        <div className="flex items-center gap-3 mt-1">
-                            <div className="flex items-center gap-1 text-[10px] text-white/40 group-hover:text-white/60 transition-colors">
-                                <svg className="w-3 h-3 text-cyan-400" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M8 5v14l11-7z" />
-                                </svg>
-                                <span className="font-bold">{track.num_plays || 0}</span>
-                            </div>
-                            <div className="flex items-center gap-1 text-[10px] text-white/40 group-hover:text-white/60 transition-colors">
-                                <svg className="w-3 h-3 text-red-400/60" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                                </svg>
-                                <span className="font-bold">{track.favorite_count || 0}</span>
-                            </div>
-                        </div>
                         {track.description && (
                             <p className="text-white/40 text-[11px] leading-tight italic mt-1">
                                 {track.description}
